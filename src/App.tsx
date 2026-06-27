@@ -50,6 +50,31 @@ interface FAQItem {
   answer: string;
 }
 
+// =========================================================================
+// 🎯 CONFIGURACIÓN GLOBAL DE CÓDIGOS QR (PAYPAL, NEQUI, BRE-B)
+// =========================================================================
+// Aquí puedes cargar tus propios códigos QR y direcciones para la campaña.
+// 💡 Si ingresas una URL en 'qrImageUrl' (ej: "https://miservidor.com/qr.png" o "/imagenes/qr.png"),
+//    el sistema cargará automáticamente tu imagen. Si la dejas vacía (""),
+//    se mostrará un elegante código QR vectorizado interactivo de prueba.
+export const QR_CONFIG = {
+  paypal: {
+    qrImageUrl: "", // Carga aquí la URL de tu imagen de QR PayPal
+    accountEmail: "donaciones@esperanzaactiva.org",
+    recipientName: "Esperanza Activa Foundation (Emergencia Terremoto)"
+  },
+  nequi: {
+    qrImageUrl: "", // Carga aquí la URL de tu imagen de QR Nequi
+    phoneNumber: "+57 312 456 7890",
+    accountName: "Esperanza Activa Colombia (Ayuda Humanitaria Sismo)"
+  },
+  breb: {
+    qrImageUrl: "", // Carga aquí la URL de tu imagen de QR Bre-B
+    aliasKey: "donaciones.venezuela@breb.com",
+    keyType: "E-mail Corporativo Autorizado"
+  }
+};
+
 export default function App() {
   // Estado para la navegación móvil
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -106,78 +131,78 @@ export default function App() {
 
   const activeAmount = getActiveAmount();
 
-  // Mensaje de impacto dinámico basado en el monto seleccionado
+  // Mensaje de impacto dinámico basado en el monto seleccionado (Enfoque Terremoto)
   const getDynamicImpactMessage = (amount: number): string => {
-    if (amount <= 0) return 'Cada dólar cuenta para proveer nutrición básica.';
+    if (amount <= 0) return 'Cada dólar cuenta para proveer auxilio inmediato en las zonas de sismo.';
     if (amount < 15) {
-      return `Con $${amount} financias tratamientos de micronutrientes y vitaminas esenciales para un niño durante un mes completo.`;
+      return `Con $${amount} financias un kit familiar de primeros auxilios y 20 tabletas purificadoras de agua para damnificados.`;
     } else if (amount < 35) {
-      return `Con $${amount} aseguras tratamiento terapéutico contra desnutrición aguda severa y agua potable purificada para 3 niños.`;
+      return `Con $${amount} aseguras la entrega de 2 mantas térmicas gruesas, colchonetas plegables y linternas recargables de emergencia para una familia sin hogar.`;
     } else if (amount < 75) {
-      return `Con $${amount} provees una canasta de alimentación familiar completa (granos, proteínas, leche, harina) para una familia vulnerable durante 10 días.`;
+      return `Con $${amount} provees una caja de rescate con raciones de comida seca de alta densidad calórica y agua embotellada para 1 familia por 10 días completos.`;
     } else if (amount < 150) {
-      return `Con $${amount} garantizas atención pediátrica completa, exámenes de laboratorio y medicamentos críticos para 5 niños en nuestras jornadas médicas de campo.`;
+      return `Con $${amount} garantizas la atención prehospitalaria de paramédicos, inmovilizadores, gasas de trauma y antibióticos de urgencia para 3 víctimas heridas en el sismo.`;
     } else {
       const familias = Math.floor(amount / 50);
-      return `¡Increíble impacto! Tu aporte de $${amount} provee sustento alimentario integral para ${familias} familias vulnerables por más de una semana y soporte de salud comunitaria.`;
+      return `¡Increíble impacto de rescate! Tu aporte de $${amount} permite movilizar y equipar una brigada activa de búsqueda con camillas, cascos de protección, cuerdas de salvamento e insumos de trauma críticos.`;
     }
   };
 
-  // Niveles de Impacto sugeridos
+  // Niveles de Impacto sugeridos para Emergencia por Terremoto
   const impactLevels: ImpactLevel[] = [
     {
       amount: 10,
-      icon: <Apple className="w-5 h-5 text-[#CF142B]" />,
-      title: "Nutrición y Vitaminas",
-      description: "Medicinas esenciales y suplementos de vitaminas para 1 niño por 1 mes.",
-      detail: "Ayuda a prevenir secuelas irreversibles en el desarrollo cognitivo y motor debido a desnutrición en la primera infancia."
+      icon: <Activity className="w-5 h-5 text-[#CF142B]" />,
+      title: "Agua y Primeros Auxilios",
+      description: "Agua purificada y kit básico de desinfección de heridas para damnificados.",
+      detail: "Ayuda a evitar brotes infecciosos por consumo de agua no potable y provee atención inmediata a escoriaciones leves tras el sismo."
     },
     {
       amount: 25,
-      icon: <Activity className="w-5 h-5 text-[#F7D117]" />,
-      title: "Tratamientos de Desnutrición",
-      description: "Tratamiento terapéutico de recuperación nutricional para 3 niños.",
-      detail: "Incluye monitoreo antropométrico, entrega de pasta de maní fortificada y controles semanales con nutricionistas."
+      icon: <Globe className="w-5 h-5 text-[#F7D117]" />,
+      title: "Mantas y Refugio Temporal",
+      description: "Aislamiento frío/calor, mantas térmicas y colchonetas de emergencia.",
+      detail: "Garantiza un descanso digno y protección climática nocturna para familias cuyas casas sufrieron daños estructurales graves o colapso."
     },
     {
       amount: 50,
       icon: <HeartHandshake className="w-5 h-5 text-[#003893]" />,
-      title: "Alimento Familiar Integral",
-      description: "Una canasta básica completa para sustentar a una familia por 10 días.",
-      detail: "Alivio directo para hogares en pobreza extrema, garantizando proteínas, carbohidratos complejos y grasas saludables."
+      title: "Caja de Rescate y Raciones",
+      description: "Kit de alimentos de emergencia no perecederos para sustentar una familia por 10 días.",
+      detail: "Raciones secas listas para consumir (atún, granos, barras energéticas, leche en polvo) que no requieren cocción en zonas sin gas ni luz."
     },
     {
       amount: 100,
       icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />,
-      title: "Operativo Médico de Campo",
-      description: "Atención médica, desparasitación y pediatría para 5 niños vulnerables.",
-      detail: "Llevamos pediatras, insumos médicos y medicinas recetadas directamente a comunidades aisladas y asentamientos informales."
+      title: "Atención de Trauma Médica",
+      description: "Insumos médicos de trauma, vendajes compresivos y analgésicos de urgencia.",
+      detail: "Llevamos un puesto de auxilio móvil con paramédicos profesionales y médicos generales para atender heridas, fracturas y suturas en el lugar."
     }
   ];
 
-  // Testimonios reales
+  // Testimonios reales adaptados al terremoto
   const testimonials: Testimonial[] = [
     {
       name: "Dra. Mariana Rojas",
-      role: "Pediatra Coordinadora de Campo",
-      location: "Zulia, Venezuela",
-      text: "La velocidad con la que los niños se recuperan de la desnutrición aguda cuando se les entrega el tratamiento adecuado es un milagro diario. Gracias a los donantes, hemos salvado a más de 450 niños solo en el último semestre en el sector Guajira.",
+      role: "Pediatra de Emergencia y Rescate",
+      location: "San Cristóbal, Táchira",
+      text: "La rapidez de respuesta ante un sismo define vidas. Gracias al fondo de emergencia, hemos logrado distribuir más de 300 kits de trauma y atender a niños heridos por desprendimiento de paredes. Tu donación llega en horas directas al lugar de los hechos.",
       image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400",
       badge: "Equipo Médico"
     },
     {
       name: "Carmen Elena Uzcátegui",
-      role: "Madre de Santiago (3 años)",
-      location: "Petare, Caracas",
-      text: "Santiago no tenía fuerzas ni para sonreír. En el comedor comunitario no solo me dieron comida para él, sino el suplemento médico que necesitaba. Hoy corre por toda la casa y tiene un peso sano. Dios bendiga a quienes hacen esto posible.",
+      role: "Madre de Familia Damnificada",
+      location: "Zonas afectadas, Venezuela",
+      text: "La tierra rugió y las paredes de nuestro cuarto se vinieron abajo. Nos quedamos en la calle solo con lo puesto. Esa misma noche la brigada de Esperanza Activa nos trajo colchonetas, agua potable y comida para mis niños. Es una luz de fe.",
       image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400",
       badge: "Familia Beneficiada"
     },
     {
       name: "Francisco Mendoza",
-      role: "Coordinador de Logística y Alianzas",
-      location: "San Cristóbal, Táchira",
-      text: "Cada donación es transformada de inmediato en compras locales auditadas o insumos importados legalmente. El 92% de cada dólar se destina directamente al trabajo de campo, manteniendo la máxima transparencia y eficiencia.",
+      role: "Coordinador de Logística de Rescate",
+      location: "Caracas - Mérida",
+      text: "El 92% de los recursos se convierte inmediatamente en compras locales de suministros de socorro (agua, mantas, raciones y medicamentos de trauma) que despachamos en camionetas rústicas para sortear las vías afectadas por derrumbes.",
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400",
       badge: "Voluntario"
     }
@@ -185,20 +210,20 @@ export default function App() {
 
   const faqs: FAQItem[] = [
     {
-      question: "¿Cómo se distribuyen los fondos que dono?",
-      answer: "El 92% de los recursos se destina directamente a programas operativos en Venezuela (compra y distribución de alimentos terapéuticos, medicamentos pediátricos básicos, equipamiento de comedores e insumos de agua). Solo el 8% se utiliza para gastos administrativos esenciales, de auditoría independiente y pasarelas de pago seguras."
+      question: "¿Cómo se distribuyen los fondos para la emergencia del terremoto?",
+      answer: "El 92% de los recursos se destina directamente a compras y logística en Venezuela: raciones alimentarias de emergencia, agua embotellada, mantas, colchonetas de refugio, material médico de suturas y trauma, y herramientas de búsqueda. Solo el 8% se usa para gastos de procesamiento de pagos y auditoría independiente para garantizar transparencia impecable."
     },
     {
       question: "¿Es seguro donar desde el exterior? ¿Qué métodos aceptan?",
-      answer: "Sí, es 100% seguro. Usamos conexiones encriptadas SSL de nivel militar (AES-256). Aceptamos tarjetas internacionales de crédito y débito (Visa, Mastercard, Amex), PayPal, transferencias Zelle (muy habituales en la comunidad hispana) y Binance Pay (criptomonedas estables como USDT) para evitar comisiones internacionales excesivas."
+      answer: "Sí, es 100% seguro con encriptación SSL de nivel militar (AES-256). Aceptamos tarjetas internacionales de crédito/débito, PayPal, transferencias Zelle y Binance Pay (criptomonedas estables como USDT) para facilitar envíos rápidos que se procesan de inmediato."
     },
     {
-      question: "¿Puedo recibir informes sobre el destino de mi dinero?",
-      answer: "¡Por supuesto! Si dejas marcada la casilla de recibir reportes, te enviaremos de manera mensual un boletín detallado con fotografías, facturas generales auditadas y el registro de la cantidad de niños y familias que logramos atender en cada estado (Zulia, Miranda, Apure, Táchira, etc.) gracias a tu contribución."
+      question: "¿Cómo sabemos que la ayuda llega a las zonas damnificadas por el sismo?",
+      answer: "Publicamos reportes de campo detallados con fotografías, facturas generales auditadas y listas de materiales entregados en cada comunidad afectada de forma semanal. Si dejas seleccionada la casilla de recibir reportes, recibirás este boletín de transparencia directo en tu e-mail."
     },
     {
-      question: "¿Puedo hacer una donación recurrente mensual y cancelarla cuando quiera?",
-      answer: "Sí. Las donaciones mensuales nos permiten planificar compras anticipadas a gran escala y asegurar la continuidad de los tratamientos de desnutrición. Puedes cancelar tu suscripción mensual en cualquier momento con un solo clic desde el correo de confirmación o enviando un mensaje directo a soporte."
+      question: "¿Puedo coordinar el envío de insumos físicos (ropa, carpas o medicamentos)?",
+      answer: "Sí, coordinamos centros de acopio internacionales para donaciones de gran escala de empresas o fundaciones. Si deseas donar carpas de campaña, plantas eléctricas o instrumental médico, escríbenos directamente a coordinacion@esperanzaactiva.org para agilizar la logística aduanera de emergencia."
     }
   ];
 
@@ -300,18 +325,20 @@ export default function App() {
       const element = document.createElement("a");
       const file = new Blob([
         `==================================================\n` +
-        `            CERTIFICADO DE ESPERANZA ACTIVA       \n` +
+        `   CERTIFICADO DE RESPUESTA HUMANITARIA - SISMO    \n` +
+        `            ESPERANZA ACTIVA VENEZUELA            \n` +
         `==================================================\n\n` +
         `Otorgado con profunda gratitud a:\n` +
         `   ${personalData.firstName} ${personalData.lastName || ''}\n\n` +
-        `Por sembrar una semilla de vida, salud y esperanza mediante\n` +
-        `su valiosa donación de $${activeAmount} USD destinada a proveer\n` +
-        `alimentación y tratamientos nutricionales a la niñez vulnerable\n` +
+        `Por sembrar una semilla de vida y socorrer de inmediato\n` +
+        `mediante su donación de $${activeAmount} USD destinada a proveer\n` +
+        `auxilio médico de trauma, mantas térmicas, agua potable y kits de\n` +
+        `refugio de emergencia a las familias damnificadas por el terremoto\n` +
         `en Venezuela.\n\n` +
         `--------------------------------------------------\n` +
         `Fecha de Emisión: ${new Date().toLocaleDateString()}\n` +
-        `Código de Validación: EA-CERT-${Math.floor(100000 + Math.random() * 900000)}\n` +
-        `Esperanza Activa Foundation • Caracas - San Cristóbal\n` +
+        `Código de Validación: EA-SISMO-CERT-${Math.floor(100000 + Math.random() * 900000)}\n` +
+        `Esperanza Activa Foundation • Caracas - Mérida - Táchira\n` +
         `==================================================\n`
       ], {type: 'text/plain'});
       element.href = URL.createObjectURL(file);
@@ -431,11 +458,11 @@ export default function App() {
       <main className="flex-grow">
         
         {/* Banner de Urgencia */}
-        <div className="bg-amber-50 border-b border-amber-100 text-amber-900 px-4 py-2.5 text-center text-xs sm:text-sm font-medium flex items-center justify-center gap-2">
-          <span className="inline-flex items-center px-2 py-0.5 rounded bg-amber-200 text-amber-900 font-bold text-[10px] tracking-wide uppercase">
-            Situación Crítica
+        <div className="bg-amber-50 border-b border-amber-100 text-amber-900 px-4 py-2.5 text-center text-xs sm:text-sm font-medium flex items-center justify-center gap-2 animate-pulse">
+          <span className="inline-flex items-center px-2 py-0.5 rounded bg-[#CF142B] text-white font-bold text-[10px] tracking-wide uppercase">
+            S.O.S. Terremoto
           </span>
-          <span>Cada día más de 4,000 niños en zonas vulnerables dependen de nuestras entregas nutricionales semanales.</span>
+          <span className="font-semibold">Sismo devastador en Venezuela: Familias damnificadas sin hogar, agua potable ni refugio seguro. ¡Tu ayuda es urgente hoy!</span>
         </div>
 
         {/* 2. HERO SECTION + INTERACTIVE DONATION WIDGET */}
@@ -450,35 +477,35 @@ export default function App() {
               {/* Columna Izquierda: Mensaje y Storytelling */}
               <div className="lg:col-span-7 flex flex-col space-y-6 sm:space-y-8">
                 
-                <div className="inline-flex items-center gap-2 bg-[#003893]/5 border border-[#003893]/10 rounded-full px-4 py-1.5 text-[#003893] font-semibold text-xs sm:text-sm w-fit">
-                  <Sparkles className="w-4 h-4 text-[#F7D117]" />
-                  <span>Campaña de Alimentos y Medicinas 2026</span>
+                <div className="inline-flex items-center gap-2 bg-rose-50 border border-rose-100 rounded-full px-4 py-1.5 text-[#CF142B] font-semibold text-xs sm:text-sm w-fit">
+                  <Sparkles className="w-4 h-4 text-[#F7D117] fill-[#F7D117]" />
+                  <span>Respuesta de Emergencia Terremoto 2026</span>
                 </div>
 
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight sm:leading-none">
-                  Lleva <span className="text-[#CF142B]">esperanza</span> y nutrición directa a <span className="relative inline-block">
+                  Lleva <span className="text-[#CF142B]">auxilio</span> y refugio tras el sismo en <span className="relative inline-block">
                     Venezuela
                     <span className="absolute left-0 bottom-1 w-full h-[6px] bg-[#F7D117]/50 -z-10 rounded-full" />
                   </span>
                 </h1>
 
                 <p className="text-base sm:text-lg lg:text-xl text-slate-600 leading-relaxed max-w-2xl">
-                  En los sectores más vulnerables de Caracas, Zulia y Táchira, la falta de proteínas y medicinas básicas compromete el futuro de miles de niños. Con tu donación segura, nuestro equipo de voluntarios entrega alimentos terapéuticos, asistencia pediátrica y agua limpia directamente en el terreno.
+                  El reciente y devastador terremoto ha dejado a miles de familias sin hogar, agua potable ni acceso a alimentos básicos en comunidades altamente vulnerables. Nuestras brigadas de voluntarios y médicos están desplegadas directamente en las zonas afectadas, distribuyendo agua limpia, carpas, mantas térmicas y atención médica de emergencia. ¡Cada segundo cuenta!
                 </p>
 
                 {/* Grid de Logros Rápidos para Generar Confianza */}
                 <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-2 border-t border-slate-100">
                   <div className="text-center sm:text-left">
                     <span className="block text-2xl sm:text-3xl font-extrabold text-[#003893]">+12K</span>
-                    <span className="text-xs text-slate-500 font-medium block mt-0.5">Niños beneficiados</span>
+                    <span className="text-xs text-slate-500 font-medium block mt-0.5">Damnificados asistidos</span>
                   </div>
                   <div className="text-center sm:text-left">
                     <span className="block text-2xl sm:text-3xl font-extrabold text-[#CF142B]">92%</span>
-                    <span className="text-xs text-slate-500 font-medium block mt-0.5">Fondos directos al campo</span>
+                    <span className="text-xs text-slate-500 font-medium block mt-0.5">Ayuda directa al terreno</span>
                   </div>
                   <div className="text-center sm:text-left">
                     <span className="block text-2xl sm:text-3xl font-extrabold text-[#F7D117]">100%</span>
-                    <span className="text-xs text-slate-500 font-medium block mt-0.5">Entregas auditadas</span>
+                    <span className="text-xs text-slate-500 font-medium block mt-0.5">Rescate coordinado</span>
                   </div>
                 </div>
 
@@ -486,17 +513,17 @@ export default function App() {
                 <div className="relative group rounded-2xl overflow-hidden aspect-[16/9] shadow-xl border border-slate-100">
                   <img 
                     src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1200" 
-                    alt="Voluntarios entregando alimentos en comunidad venezolana" 
+                    alt="Voluntarios entregando carpas y ayuda médica en la zona del sismo" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     referrerPolicy="no-referrer"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex flex-col justify-end p-4 sm:p-6 text-white">
                     <div className="flex items-center gap-2 mb-1">
                       <MapPin className="w-4 h-4 text-[#F7D117]" />
-                      <span className="text-xs font-bold tracking-wide uppercase text-slate-200">Sector San Francisco, Estado Zulia</span>
+                      <span className="text-xs font-bold tracking-wide uppercase text-slate-200">Zona Cero, Estado Táchira</span>
                     </div>
                     <p className="text-xs sm:text-sm text-slate-100 font-medium">
-                      &quot;El derecho a la alimentación básica es la semilla para el desarrollo de todo un país.&quot; — Jornada de Junio 2026.
+                      &quot;La solidaridad es nuestro único refugio cuando la tierra tiembla.&quot; — Brigada de respuesta inmediata, sismo 2026.
                     </p>
                   </div>
                 </div>
@@ -897,41 +924,49 @@ export default function App() {
                                 {qrTab === 'paypal' && (
                                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
                                     <div className="sm:col-span-4 flex justify-center">
-                                      {/* Mock QR de PayPal en SVG */}
                                       <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-sm relative group">
-                                        <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
-                                          {/* Finders */}
-                                          <rect x="0" y="0" width="28" height="28" fill="#003087" rx="2" />
-                                          <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
-                                          <rect x="8" y="8" width="12" height="12" fill="#0079C1" rx="0.5" />
+                                        {QR_CONFIG.paypal.qrImageUrl ? (
+                                          <img 
+                                            src={QR_CONFIG.paypal.qrImageUrl} 
+                                            alt="QR PayPal" 
+                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            referrerPolicy="no-referrer"
+                                          />
+                                        ) : (
+                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                            {/* Finders */}
+                                            <rect x="0" y="0" width="28" height="28" fill="#003087" rx="2" />
+                                            <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="8" width="12" height="12" fill="#0079C1" rx="0.5" />
 
-                                          <rect x="72" y="0" width="28" height="28" fill="#003087" rx="2" />
-                                          <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
-                                          <rect x="80" y="8" width="12" height="12" fill="#0079C1" rx="0.5" />
+                                            <rect x="72" y="0" width="28" height="28" fill="#003087" rx="2" />
+                                            <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="80" y="8" width="12" height="12" fill="#0079C1" rx="0.5" />
 
-                                          <rect x="0" y="72" width="28" height="28" fill="#003087" rx="2" />
-                                          <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
-                                          <rect x="8" y="80" width="12" height="12" fill="#0079C1" rx="0.5" />
+                                            <rect x="0" y="72" width="28" height="28" fill="#003087" rx="2" />
+                                            <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="80" width="12" height="12" fill="#0079C1" rx="0.5" />
 
-                                          {/* Pixels */}
-                                          <rect x="36" y="4" width="8" height="8" fill="#003087" />
-                                          <rect x="48" y="0" width="8" height="4" fill="#0079C1" />
-                                          <rect x="60" y="8" width="4" height="12" fill="#003087" />
-                                          <rect x="36" y="20" width="12" height="4" fill="#0079C1" />
-                                          <rect x="40" y="36" width="16" height="8" fill="#003087" />
-                                          <rect x="12" y="36" width="12" height="12" fill="#0079C1" />
-                                          <rect x="76" y="36" width="20" height="16" fill="#003087" />
-                                          <rect x="0" y="52" width="16" height="8" fill="#0079C1" />
-                                          <rect x="36" y="52" width="24" height="12" fill="#003087" />
-                                          <rect x="72" y="60" width="12" height="8" fill="#0079C1" />
-                                          <rect x="40" y="76" width="8" height="16" fill="#003087" />
-                                          <rect x="56" y="72" width="12" height="12" fill="#0079C1" />
-                                          <rect x="80" y="80" width="16" height="16" fill="#003087" />
+                                            {/* Pixels */}
+                                            <rect x="36" y="4" width="8" height="8" fill="#003087" />
+                                            <rect x="48" y="0" width="8" height="4" fill="#0079C1" />
+                                            <rect x="60" y="8" width="4" height="12" fill="#003087" />
+                                            <rect x="36" y="20" width="12" height="4" fill="#0079C1" />
+                                            <rect x="40" y="36" width="16" height="8" fill="#003087" />
+                                            <rect x="12" y="36" width="12" height="12" fill="#0079C1" />
+                                            <rect x="76" y="36" width="20" height="16" fill="#003087" />
+                                            <rect x="0" y="52" width="16" height="8" fill="#0079C1" />
+                                            <rect x="36" y="52" width="24" height="12" fill="#003087" />
+                                            <rect x="72" y="60" width="12" height="8" fill="#0079C1" />
+                                            <rect x="40" y="76" width="8" height="16" fill="#003087" />
+                                            <rect x="56" y="72" width="12" height="12" fill="#0079C1" />
+                                            <rect x="80" y="80" width="16" height="16" fill="#003087" />
 
-                                          {/* Mini Logo */}
-                                          <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
-                                          <circle cx="50" cy="50" r="5" fill="#003087" />
-                                        </svg>
+                                            {/* Mini Logo */}
+                                            <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
+                                            <circle cx="50" cy="50" r="5" fill="#003087" />
+                                          </svg>
+                                        )}
                                         <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
                                           <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Campaña PayPal</span>
                                         </div>
@@ -942,21 +977,21 @@ export default function App() {
                                         <span className="font-extrabold text-[#003087] italic text-sm tracking-tighter">Pay<span className="text-[#0079C1]">Pal</span> <span className="text-xs font-bold not-italic text-slate-500 uppercase tracking-wider ml-1">Internacional</span></span>
                                       </div>
                                       <p className="text-[11px] text-slate-500 leading-normal">
-                                        Escanea desde tu app PayPal o escanea el código para procesar tu donación internacional directamente a nuestra cuenta oficial registrada.
+                                        Escanea desde tu app PayPal o usa la dirección de correo oficial para procesar tu donación internacional directamente para la emergencia del sismo.
                                       </p>
                                       <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
                                         <div className="flex justify-between items-center">
                                           <span className="text-slate-400">Correo Cuenta:</span>
-                                          <span className="font-mono font-bold text-slate-800">donaciones@esperanzaactiva.org</span>
+                                          <span className="font-mono font-bold text-slate-800">{QR_CONFIG.paypal.accountEmail}</span>
                                         </div>
                                         <div className="flex justify-between items-center pt-1 border-t border-slate-100">
                                           <span className="text-slate-400">Destinatario:</span>
-                                          <span className="font-semibold text-slate-700">Esperanza Activa Foundation</span>
+                                          <span className="font-semibold text-slate-700">{QR_CONFIG.paypal.recipientName}</span>
                                         </div>
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={() => copyToClipboard('donaciones@esperanzaactiva.org', 'paypal')}
+                                        onClick={() => copyToClipboard(QR_CONFIG.paypal.accountEmail, 'paypal')}
                                         className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
                                       >
                                         <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'paypal' ? 'scale-110' : 'scale-0'}`} />
@@ -969,43 +1004,51 @@ export default function App() {
                                 {qrTab === 'nequi' && (
                                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
                                     <div className="sm:col-span-4 flex justify-center">
-                                      {/* Mock QR de Nequi en SVG */}
                                       <div className="bg-[#3F1965]/10 p-2.5 rounded-2xl border border-purple-200 shadow-sm relative group">
-                                        <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
-                                          {/* Finders */}
-                                          <rect x="0" y="0" width="28" height="28" fill="#3F1965" rx="2" />
-                                          <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
-                                          <rect x="8" y="8" width="12" height="12" fill="#FF007F" rx="0.5" />
+                                        {QR_CONFIG.nequi.qrImageUrl ? (
+                                          <img 
+                                            src={QR_CONFIG.nequi.qrImageUrl} 
+                                            alt="QR Nequi" 
+                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            referrerPolicy="no-referrer"
+                                          />
+                                        ) : (
+                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                            {/* Finders */}
+                                            <rect x="0" y="0" width="28" height="28" fill="#3F1965" rx="2" />
+                                            <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="8" width="12" height="12" fill="#FF007F" rx="0.5" />
 
-                                          <rect x="72" y="0" width="28" height="28" fill="#3F1965" rx="2" />
-                                          <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
-                                          <rect x="80" y="8" width="12" height="12" fill="#FF007F" rx="0.5" />
+                                            <rect x="72" y="0" width="28" height="28" fill="#3F1965" rx="2" />
+                                            <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="80" y="8" width="12" height="12" fill="#FF007F" rx="0.5" />
 
-                                          <rect x="0" y="72" width="28" height="28" fill="#3F1965" rx="2" />
-                                          <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
-                                          <rect x="8" y="80" width="12" height="12" fill="#FF007F" rx="0.5" />
+                                            <rect x="0" y="72" width="28" height="28" fill="#3F1965" rx="2" />
+                                            <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="80" width="12" height="12" fill="#FF007F" rx="0.5" />
 
-                                          {/* Pixels */}
-                                          <rect x="36" y="0" width="8" height="8" fill="#FF007F" />
-                                          <rect x="48" y="4" width="4" height="12" fill="#3F1965" />
-                                          <rect x="56" y="0" width="12" height="4" fill="#FF007F" />
-                                          <rect x="36" y="16" width="16" height="4" fill="#3F1965" />
-                                          <rect x="64" y="24" width="4" height="12" fill="#FF007F" />
-                                          <rect x="16" y="36" width="12" height="16" fill="#3F1965" />
-                                          <rect x="36" y="36" width="20" height="8" fill="#FF007F" />
-                                          <rect x="72" y="36" width="24" height="4" fill="#3F1965" />
-                                          <rect x="0" y="52" width="8" height="12" fill="#FF007F" />
-                                          <rect x="48" y="48" width="16" height="16" fill="#3F1965" />
-                                          <rect x="76" y="52" width="12" height="12" fill="#FF007F" />
-                                          <rect x="36" y="68" width="24" height="4" fill="#3F1965" />
-                                          <rect x="40" y="76" width="12" height="16" fill="#FF007F" />
-                                          <rect x="60" y="80" width="8" height="8" fill="#3F1965" />
-                                          <rect x="80" y="76" width="16" height="16" fill="#FF007F" />
+                                            {/* Pixels */}
+                                            <rect x="36" y="0" width="8" height="8" fill="#FF007F" />
+                                            <rect x="48" y="4" width="4" height="12" fill="#3F1965" />
+                                            <rect x="56" y="0" width="12" height="4" fill="#FF007F" />
+                                            <rect x="36" y="16" width="16" height="4" fill="#3F1965" />
+                                            <rect x="64" y="24" width="4" height="12" fill="#FF007F" />
+                                            <rect x="16" y="36" width="12" height="16" fill="#3F1965" />
+                                            <rect x="36" y="36" width="20" height="8" fill="#FF007F" />
+                                            <rect x="72" y="36" width="24" height="4" fill="#3F1965" />
+                                            <rect x="0" y="52" width="8" height="12" fill="#FF007F" />
+                                            <rect x="48" y="48" width="16" height="16" fill="#3F1965" />
+                                            <rect x="76" y="52" width="12" height="12" fill="#FF007F" />
+                                            <rect x="36" y="68" width="24" height="4" fill="#3F1965" />
+                                            <rect x="40" y="76" width="12" height="16" fill="#FF007F" />
+                                            <rect x="60" y="80" width="8" height="8" fill="#3F1965" />
+                                            <rect x="80" y="76" width="16" height="16" fill="#FF007F" />
 
-                                          {/* Mini Logo */}
-                                          <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
-                                          <rect x="45" y="45" width="10" height="10" fill="#3F1965" rx="2" />
-                                        </svg>
+                                            {/* Mini Logo */}
+                                            <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
+                                            <rect x="45" y="45" width="10" height="10" fill="#3F1965" rx="2" />
+                                          </svg>
+                                        )}
                                         <div className="absolute inset-0 bg-[#3F1965]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
                                           <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Campaña Nequi</span>
                                         </div>
@@ -1016,21 +1059,21 @@ export default function App() {
                                         <span className="font-extrabold text-[#3F1965] text-sm tracking-tight">NEQUI <span className="px-1.5 py-0.5 rounded bg-[#FF007F]/10 text-[#FF007F] text-[9px] font-extrabold uppercase tracking-widest ml-1">Fácil & Rápido</span></span>
                                       </div>
                                       <p className="text-[11px] text-slate-500 leading-normal">
-                                        Escanea desde tu app móvil Nequi para realizar transferencias inmediatas de ayuda humanitaria desde Colombia de forma segura y sin recargos.
+                                        Escanea desde tu app móvil Nequi para realizar transferencias inmediatas de ayuda humanitaria desde Colombia sin recargos.
                                       </p>
                                       <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
                                         <div className="flex justify-between items-center">
                                           <span className="text-slate-400">Celular Nequi:</span>
-                                          <span className="font-mono font-bold text-slate-800">+57 312 456 7890</span>
+                                          <span className="font-mono font-bold text-slate-800">{QR_CONFIG.nequi.phoneNumber}</span>
                                         </div>
                                         <div className="flex justify-between items-center pt-1 border-t border-slate-100">
                                           <span className="text-slate-400">Titular Cuenta:</span>
-                                          <span className="font-semibold text-slate-700">Esperanza Activa Colombia (ONG)</span>
+                                          <span className="font-semibold text-slate-700">{QR_CONFIG.nequi.accountName}</span>
                                         </div>
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={() => copyToClipboard('+573124567890', 'nequi')}
+                                        onClick={() => copyToClipboard(QR_CONFIG.nequi.phoneNumber, 'nequi')}
                                         className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
                                       >
                                         <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'nequi' ? 'scale-110' : 'scale-0'}`} />
@@ -1043,44 +1086,52 @@ export default function App() {
                                 {qrTab === 'breb' && (
                                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
                                     <div className="sm:col-span-4 flex justify-center">
-                                      {/* Mock QR de Bre-B en SVG */}
                                       <div className="bg-amber-500/10 p-2.5 rounded-2xl border border-yellow-200 shadow-sm relative group">
-                                        <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
-                                          {/* Finders */}
-                                          <rect x="0" y="0" width="28" height="28" fill="#F7D117" rx="2" />
-                                          <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
-                                          <rect x="8" y="8" width="12" height="12" fill="#003893" rx="0.5" />
+                                        {QR_CONFIG.breb.qrImageUrl ? (
+                                          <img 
+                                            src={QR_CONFIG.breb.qrImageUrl} 
+                                            alt="QR Bre-B" 
+                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            referrerPolicy="no-referrer"
+                                          />
+                                        ) : (
+                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                            {/* Finders */}
+                                            <rect x="0" y="0" width="28" height="28" fill="#F7D117" rx="2" />
+                                            <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="8" width="12" height="12" fill="#003893" rx="0.5" />
 
-                                          <rect x="72" y="0" width="28" height="28" fill="#F7D117" rx="2" />
-                                          <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
-                                          <rect x="80" y="8" width="12" height="12" fill="#003893" rx="0.5" />
+                                            <rect x="72" y="0" width="28" height="28" fill="#F7D117" rx="2" />
+                                            <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="80" y="8" width="12" height="12" fill="#003893" rx="0.5" />
 
-                                          <rect x="0" y="72" width="28" height="28" fill="#F7D117" rx="2" />
-                                          <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
-                                          <rect x="8" y="80" width="12" height="12" fill="#003893" rx="0.5" />
+                                            <rect x="0" y="72" width="28" height="28" fill="#F7D117" rx="2" />
+                                            <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="80" width="12" height="12" fill="#003893" rx="0.5" />
 
-                                          {/* Pixels */}
-                                          <rect x="36" y="0" width="12" height="8" fill="#003893" />
-                                          <rect x="52" y="4" width="4" height="4" fill="#F7D117" />
-                                          <rect x="60" y="0" width="8" height="8" fill="#003893" />
-                                          <rect x="36" y="12" width="16" height="12" fill="#F7D117" />
-                                          <rect x="60" y="20" width="8" height="8" fill="#003893" />
-                                          <rect x="12" y="36" width="20" height="8" fill="#F7D117" />
-                                          <rect x="36" y="36" width="12" height="16" fill="#003893" />
-                                          <rect x="56" y="36" width="8" height="8" fill="#F7D117" />
-                                          <rect x="72" y="44" width="16" height="12" fill="#003893" />
-                                          <rect x="0" y="56" width="12" height="12" fill="#F7D117" />
-                                          <rect x="36" y="60" width="16" height="4" fill="#003893" />
-                                          <rect x="56" y="52" width="12" height="12" fill="#F7D117" />
-                                          <rect x="76" y="64" width="12" height="4" fill="#003893" />
-                                          <rect x="40" y="72" width="16" height="16" fill="#F7D117" />
-                                          <rect x="64" y="80" width="8" height="8" fill="#003893" />
-                                          <rect x="80" y="76" width="16" height="16" fill="#F7D117" />
+                                            {/* Pixels */}
+                                            <rect x="36" y="0" width="12" height="8" fill="#003893" />
+                                            <rect x="52" y="4" width="4" height="4" fill="#F7D117" />
+                                            <rect x="60" y="0" width="8" height="8" fill="#003893" />
+                                            <rect x="36" y="12" width="16" height="12" fill="#F7D117" />
+                                            <rect x="60" y="20" width="8" height="8" fill="#003893" />
+                                            <rect x="12" y="36" width="20" height="8" fill="#F7D117" />
+                                            <rect x="36" y="36" width="12" height="16" fill="#003893" />
+                                            <rect x="56" y="36" width="8" height="8" fill="#F7D117" />
+                                            <rect x="72" y="44" width="16" height="12" fill="#003893" />
+                                            <rect x="0" y="56" width="12" height="12" fill="#F7D117" />
+                                            <rect x="36" y="60" width="16" height="4" fill="#003893" />
+                                            <rect x="56" y="52" width="12" height="12" fill="#F7D117" />
+                                            <rect x="76" y="64" width="12" height="4" fill="#003893" />
+                                            <rect x="40" y="72" width="16" height="16" fill="#F7D117" />
+                                            <rect x="64" y="80" width="8" height="8" fill="#003893" />
+                                            <rect x="80" y="76" width="16" height="16" fill="#F7D117" />
 
-                                          {/* Mini Logo */}
-                                          <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
-                                          <polygon points="50,44 56,54 44,54" fill="#003893" />
-                                        </svg>
+                                            {/* Mini Logo */}
+                                            <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
+                                            <polygon points="50,44 56,54 44,54" fill="#003893" />
+                                          </svg>
+                                        )}
                                         <div className="absolute inset-0 bg-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
                                           <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Canal Bre-B</span>
                                         </div>
@@ -1096,16 +1147,16 @@ export default function App() {
                                       <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
                                         <div className="flex justify-between items-center">
                                           <span className="text-slate-400">Llave / Alias Bre-B:</span>
-                                          <span className="font-mono font-bold text-slate-800">donaciones.venezuela@breb.com</span>
+                                          <span className="font-mono font-bold text-slate-800">{QR_CONFIG.breb.aliasKey}</span>
                                         </div>
                                         <div className="flex justify-between items-center pt-1 border-t border-slate-100">
                                           <span className="text-slate-400">Tipo de Llave:</span>
-                                          <span className="font-semibold text-slate-700">E-mail Corporativo</span>
+                                          <span className="font-semibold text-slate-700">{QR_CONFIG.breb.keyType}</span>
                                         </div>
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={() => copyToClipboard('donaciones.venezuela@breb.com', 'breb')}
+                                        onClick={() => copyToClipboard(QR_CONFIG.breb.aliasKey, 'breb')}
                                         className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
                                       >
                                         <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'breb' ? 'scale-110' : 'scale-0'}`} />
@@ -1381,7 +1432,7 @@ export default function App() {
                     Auditorías independientes externas y trazabilidad
                   </h3>
                   <p className="text-slate-200 text-sm sm:text-base leading-relaxed max-w-3xl">
-                    Para mantener los más altos estándares éticos, todas nuestras compras e inventarios son auditados de manera bimestral por firmas externas. Cada compra de alimentos terapéuticos es mapeada mediante códigos de lote para verificar su recepción por parte de las familias venezolanas.
+                    Para mantener los más altos estándares éticos, todas nuestras compras e inventarios de emergencia son auditados de manera bimestral por firmas externas. Cada compra de kits de salvamento y carpas de refugio es mapeada mediante geolocalización y registro fotográfico de entrega directa para verificar su recepción inmediata por parte de las familias venezolanas damnificadas.
                   </p>
                 </div>
                 <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-4 justify-center">
@@ -1560,7 +1611,7 @@ export default function App() {
                 </span>
               </div>
               <p className="text-xs leading-relaxed text-slate-400 max-w-sm">
-                Organización de carácter humanitario, sin fines de lucro, legalmente incorporada y dedicada a canalizar ayuda alimentaria y de salud para el rescate nutricional de la infancia vulnerable en Venezuela.
+                Organización de carácter humanitario, sin fines de lucro, legalmente incorporada y dedicada a canalizar atención médica de trauma, alimentos de emergencia, agua purificada y refugio temporal para el auxilio de familias damnificadas por sismos y desastres naturales en Venezuela.
               </p>
               <p className="text-[10px] text-slate-500 font-mono">
                 Licencia de Operación NGO Nro: US-503C-982110
