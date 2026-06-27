@@ -1,0 +1,1633 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Heart, 
+  HeartHandshake, 
+  Activity, 
+  Apple, 
+  ShieldCheck, 
+  Lock, 
+  Check, 
+  ArrowRight, 
+  ArrowLeft, 
+  CreditCard, 
+  Award, 
+  Info, 
+  Sparkles, 
+  Menu, 
+  X, 
+  Globe, 
+  MapPin, 
+  TrendingUp, 
+  Users, 
+  CheckCircle,
+  FileText,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  Share2
+} from 'lucide-react';
+
+// Interfaces para los datos de la aplicación
+interface ImpactLevel {
+  amount: number;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  detail: string;
+}
+
+interface Testimonial {
+  name: string;
+  role: string;
+  location: string;
+  text: string;
+  image: string;
+  badge: string;
+}
+
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+export default function App() {
+  // Estado para la navegación móvil
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Estados del Widget de Donación
+  const [donationFrequency, setDonationFrequency] = useState<'once' | 'monthly'>('monthly');
+  const [selectedAmount, setSelectedAmount] = useState<number | 'custom'>(25);
+  const [customAmount, setCustomAmount] = useState<string>('');
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
+  const [wantsReports, setWantsReports] = useState<boolean>(true);
+  const [qrTab, setQrTab] = useState<'paypal' | 'nequi' | 'breb'>('paypal');
+
+  // Estado del Formulario de Donación/Pago
+  const [personalData, setPersonalData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    paymentMethod: 'card' as 'card' | 'qrexpress',
+    cardHolder: '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvv: '',
+    qrConfirmationChecked: false
+  });
+
+  // Estado para validaciones de errores sencillas
+  const [formErrors, setFormErrors] = useState<string | null>(null);
+
+  // Estado para los acordeones de FAQ
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  // Estado de notificación de copia de enlace
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [downloadingCertificate, setDownloadingCertificate] = useState(false);
+  const [certificateDownloaded, setCertificateDownloaded] = useState(false);
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(label);
+    setTimeout(() => setCopiedText(null), 2500);
+  };
+
+  // Calcular el monto total activo
+  const getActiveAmount = (): number => {
+    if (selectedAmount === 'custom') {
+      const parsed = parseFloat(customAmount);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return selectedAmount;
+  };
+
+  const activeAmount = getActiveAmount();
+
+  // Mensaje de impacto dinámico basado en el monto seleccionado
+  const getDynamicImpactMessage = (amount: number): string => {
+    if (amount <= 0) return 'Cada dólar cuenta para proveer nutrición básica.';
+    if (amount < 15) {
+      return `Con $${amount} financias tratamientos de micronutrientes y vitaminas esenciales para un niño durante un mes completo.`;
+    } else if (amount < 35) {
+      return `Con $${amount} aseguras tratamiento terapéutico contra desnutrición aguda severa y agua potable purificada para 3 niños.`;
+    } else if (amount < 75) {
+      return `Con $${amount} provees una canasta de alimentación familiar completa (granos, proteínas, leche, harina) para una familia vulnerable durante 10 días.`;
+    } else if (amount < 150) {
+      return `Con $${amount} garantizas atención pediátrica completa, exámenes de laboratorio y medicamentos críticos para 5 niños en nuestras jornadas médicas de campo.`;
+    } else {
+      const familias = Math.floor(amount / 50);
+      return `¡Increíble impacto! Tu aporte de $${amount} provee sustento alimentario integral para ${familias} familias vulnerables por más de una semana y soporte de salud comunitaria.`;
+    }
+  };
+
+  // Niveles de Impacto sugeridos
+  const impactLevels: ImpactLevel[] = [
+    {
+      amount: 10,
+      icon: <Apple className="w-5 h-5 text-[#CF142B]" />,
+      title: "Nutrición y Vitaminas",
+      description: "Medicinas esenciales y suplementos de vitaminas para 1 niño por 1 mes.",
+      detail: "Ayuda a prevenir secuelas irreversibles en el desarrollo cognitivo y motor debido a desnutrición en la primera infancia."
+    },
+    {
+      amount: 25,
+      icon: <Activity className="w-5 h-5 text-[#F7D117]" />,
+      title: "Tratamientos de Desnutrición",
+      description: "Tratamiento terapéutico de recuperación nutricional para 3 niños.",
+      detail: "Incluye monitoreo antropométrico, entrega de pasta de maní fortificada y controles semanales con nutricionistas."
+    },
+    {
+      amount: 50,
+      icon: <HeartHandshake className="w-5 h-5 text-[#003893]" />,
+      title: "Alimento Familiar Integral",
+      description: "Una canasta básica completa para sustentar a una familia por 10 días.",
+      detail: "Alivio directo para hogares en pobreza extrema, garantizando proteínas, carbohidratos complejos y grasas saludables."
+    },
+    {
+      amount: 100,
+      icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />,
+      title: "Operativo Médico de Campo",
+      description: "Atención médica, desparasitación y pediatría para 5 niños vulnerables.",
+      detail: "Llevamos pediatras, insumos médicos y medicinas recetadas directamente a comunidades aisladas y asentamientos informales."
+    }
+  ];
+
+  // Testimonios reales
+  const testimonials: Testimonial[] = [
+    {
+      name: "Dra. Mariana Rojas",
+      role: "Pediatra Coordinadora de Campo",
+      location: "Zulia, Venezuela",
+      text: "La velocidad con la que los niños se recuperan de la desnutrición aguda cuando se les entrega el tratamiento adecuado es un milagro diario. Gracias a los donantes, hemos salvado a más de 450 niños solo en el último semestre en el sector Guajira.",
+      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400",
+      badge: "Equipo Médico"
+    },
+    {
+      name: "Carmen Elena Uzcátegui",
+      role: "Madre de Santiago (3 años)",
+      location: "Petare, Caracas",
+      text: "Santiago no tenía fuerzas ni para sonreír. En el comedor comunitario no solo me dieron comida para él, sino el suplemento médico que necesitaba. Hoy corre por toda la casa y tiene un peso sano. Dios bendiga a quienes hacen esto posible.",
+      image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400",
+      badge: "Familia Beneficiada"
+    },
+    {
+      name: "Francisco Mendoza",
+      role: "Coordinador de Logística y Alianzas",
+      location: "San Cristóbal, Táchira",
+      text: "Cada donación es transformada de inmediato en compras locales auditadas o insumos importados legalmente. El 92% de cada dólar se destina directamente al trabajo de campo, manteniendo la máxima transparencia y eficiencia.",
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400",
+      badge: "Voluntario"
+    }
+  ];
+
+  const faqs: FAQItem[] = [
+    {
+      question: "¿Cómo se distribuyen los fondos que dono?",
+      answer: "El 92% de los recursos se destina directamente a programas operativos en Venezuela (compra y distribución de alimentos terapéuticos, medicamentos pediátricos básicos, equipamiento de comedores e insumos de agua). Solo el 8% se utiliza para gastos administrativos esenciales, de auditoría independiente y pasarelas de pago seguras."
+    },
+    {
+      question: "¿Es seguro donar desde el exterior? ¿Qué métodos aceptan?",
+      answer: "Sí, es 100% seguro. Usamos conexiones encriptadas SSL de nivel militar (AES-256). Aceptamos tarjetas internacionales de crédito y débito (Visa, Mastercard, Amex), PayPal, transferencias Zelle (muy habituales en la comunidad hispana) y Binance Pay (criptomonedas estables como USDT) para evitar comisiones internacionales excesivas."
+    },
+    {
+      question: "¿Puedo recibir informes sobre el destino de mi dinero?",
+      answer: "¡Por supuesto! Si dejas marcada la casilla de recibir reportes, te enviaremos de manera mensual un boletín detallado con fotografías, facturas generales auditadas y el registro de la cantidad de niños y familias que logramos atender en cada estado (Zulia, Miranda, Apure, Táchira, etc.) gracias a tu contribución."
+    },
+    {
+      question: "¿Puedo hacer una donación recurrente mensual y cancelarla cuando quiera?",
+      answer: "Sí. Las donaciones mensuales nos permiten planificar compras anticipadas a gran escala y asegurar la continuidad de los tratamientos de desnutrición. Puedes cancelar tu suscripción mensual en cualquier momento con un solo clic desde el correo de confirmación o enviando un mensaje directo a soporte."
+    }
+  ];
+
+  // Copiar link de campaña para compartir
+  const copyCampaignLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 3000);
+  };
+
+  // Manejador del avance en el Widget de Donación
+  const handleNextStep = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormErrors(null);
+
+    if (currentStep === 1) {
+      if (activeAmount <= 0) {
+        setFormErrors('Por favor, selecciona o ingresa un monto válido para donar.');
+        return;
+      }
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
+      if (!personalData.firstName.trim() || !personalData.email.trim()) {
+        setFormErrors('Por favor, completa tu nombre y correo electrónico.');
+        return;
+      }
+      // Validación básica de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(personalData.email)) {
+        setFormErrors('Por favor, ingresa un correo electrónico válido.');
+        return;
+      }
+      setCurrentStep(3);
+    } else if (currentStep === 3) {
+      // Validaciones basadas en el método de pago seleccionado
+      if (personalData.paymentMethod === 'card') {
+        if (!personalData.cardNumber || !personalData.cardExpiry || !personalData.cardCvv) {
+          setFormErrors('Por favor, completa los datos de tu tarjeta de crédito/débito.');
+          return;
+        }
+      } else if (personalData.paymentMethod === 'qrexpress') {
+        if (!personalData.qrConfirmationChecked) {
+          setFormErrors('Por favor, confirma que escaneaste el código QR y realizaste tu transferencia antes de continuar.');
+          return;
+        }
+      }
+      // Simulación exitosa
+      setCurrentStep(4);
+    }
+  };
+
+  const handlePrevStep = () => {
+    setFormErrors(null);
+    setCurrentStep((prev) => (prev > 1 ? prev - 1 : prev) as 1 | 2 | 3);
+  };
+
+  const handleAmountSelect = (amount: number) => {
+    setSelectedAmount(amount);
+    setCustomAmount('');
+    setFormErrors(null);
+  };
+
+  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9.]/g, '');
+    setSelectedAmount('custom');
+    setCustomAmount(val);
+    setFormErrors(null);
+  };
+
+  const resetDonation = () => {
+    setCurrentStep(1);
+    setSelectedAmount(25);
+    setCustomAmount('');
+    setIsAnonymous(false);
+    setDownloadingCertificate(false);
+    setCertificateDownloaded(false);
+    setPersonalData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      paymentMethod: 'card',
+      cardHolder: '',
+      cardNumber: '',
+      cardExpiry: '',
+      cardCvv: '',
+      qrConfirmationChecked: false
+    });
+  };
+
+  const handleDownloadCertificate = () => {
+    setDownloadingCertificate(true);
+    setCertificateDownloaded(false);
+    setTimeout(() => {
+      setDownloadingCertificate(false);
+      setCertificateDownloaded(true);
+      
+      // Simulate triggers an actual mock text file download to prove system is interactive
+      const element = document.createElement("a");
+      const file = new Blob([
+        `==================================================\n` +
+        `            CERTIFICADO DE ESPERANZA ACTIVA       \n` +
+        `==================================================\n\n` +
+        `Otorgado con profunda gratitud a:\n` +
+        `   ${personalData.firstName} ${personalData.lastName || ''}\n\n` +
+        `Por sembrar una semilla de vida, salud y esperanza mediante\n` +
+        `su valiosa donación de $${activeAmount} USD destinada a proveer\n` +
+        `alimentación y tratamientos nutricionales a la niñez vulnerable\n` +
+        `en Venezuela.\n\n` +
+        `--------------------------------------------------\n` +
+        `Fecha de Emisión: ${new Date().toLocaleDateString()}\n` +
+        `Código de Validación: EA-CERT-${Math.floor(100000 + Math.random() * 900000)}\n` +
+        `Esperanza Activa Foundation • Caracas - San Cristóbal\n` +
+        `==================================================\n`
+      ], {type: 'text/plain'});
+      element.href = URL.createObjectURL(file);
+      element.download = `Certificado_Esperanza_Activa_${personalData.firstName}.txt`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }, 2000);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FBFBFA] text-slate-800 font-sans flex flex-col selection:bg-rose-100 selection:text-rose-900">
+      
+      {/* 1. HEADER (ENCABEZADO) */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-100 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
+          
+          {/* Logo y Nombre de Fundación */}
+          <a href="#" className="flex items-center gap-2.5 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#003893] via-[#CF142B] to-[#F7D117] p-[2px] shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+              <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
+                <Heart className="w-5 h-5 text-[#CF142B] fill-[#CF142B]" />
+              </div>
+            </div>
+            <div>
+              <span className="font-bold text-base sm:text-lg tracking-tight text-[#003893] block leading-tight">
+                Esperanza Activa
+              </span>
+              <span className="text-[10px] sm:text-xs text-slate-500 font-medium block">
+                Ayuda Humanitaria para Venezuela
+              </span>
+            </div>
+          </a>
+
+          {/* Menú de Navegación de Escritorio */}
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#como-ayudar" className="text-sm font-medium text-slate-600 hover:text-[#003893] transition-colors">
+              ¿Cómo ayuda tu donación?
+            </a>
+            <a href="#impacto" className="text-sm font-medium text-slate-600 hover:text-[#003893] transition-colors">
+              Nuestro Impacto
+            </a>
+            <a href="#testimonios" className="text-sm font-medium text-slate-600 hover:text-[#003893] transition-colors">
+              Testimonios de campo
+            </a>
+            <a href="#faq" className="text-sm font-medium text-slate-600 hover:text-[#003893] transition-colors">
+              Preguntas Frecuentes
+            </a>
+          </nav>
+
+          {/* Botón CTA del Header */}
+          <div className="hidden md:flex items-center gap-4">
+            <a 
+              href="#formulario-donacion"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-bold bg-[#CF142B] text-white hover:bg-[#b81024] active:scale-95 transition-all shadow-md shadow-rose-200"
+            >
+              Donar Ahora
+              <Heart className="w-4 h-4 ml-1.5 fill-current animate-pulse" />
+            </a>
+          </div>
+
+          {/* Botón de Menú Móvil */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none"
+            aria-label="Abrir menú"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+        {/* Menú Móvil Desplegable */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-b border-slate-100 py-4 px-6 animate-fadeIn">
+            <nav className="flex flex-col gap-4">
+              <a 
+                href="#como-ayudar" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-medium text-slate-600 hover:text-[#003893]"
+              >
+                ¿Cómo ayuda tu donación?
+              </a>
+              <a 
+                href="#impacto" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-medium text-slate-600 hover:text-[#003893]"
+              >
+                Nuestro Impacto
+              </a>
+              <a 
+                href="#testimonios" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-medium text-slate-600 hover:text-[#003893]"
+              >
+                Testimonios de campo
+              </a>
+              <a 
+                href="#faq" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-medium text-slate-600 hover:text-[#003893]"
+              >
+                Preguntas Frecuentes
+              </a>
+              <a 
+                href="#formulario-donacion"
+                onClick={() => setMobileMenuOpen(false)}
+                className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-sm font-bold bg-[#CF142B] text-white hover:bg-[#b81024] active:scale-95 transition-all w-full text-center mt-2"
+              >
+                Donar Ahora
+                <Heart className="w-4 h-4 ml-2 fill-current" />
+              </a>
+            </nav>
+          </div>
+        )}
+      </header>
+
+      <main className="flex-grow">
+        
+        {/* Banner de Urgencia */}
+        <div className="bg-amber-50 border-b border-amber-100 text-amber-900 px-4 py-2.5 text-center text-xs sm:text-sm font-medium flex items-center justify-center gap-2">
+          <span className="inline-flex items-center px-2 py-0.5 rounded bg-amber-200 text-amber-900 font-bold text-[10px] tracking-wide uppercase">
+            Situación Crítica
+          </span>
+          <span>Cada día más de 4,000 niños en zonas vulnerables dependen de nuestras entregas nutricionales semanales.</span>
+        </div>
+
+        {/* 2. HERO SECTION + INTERACTIVE DONATION WIDGET */}
+        <section className="relative overflow-hidden py-12 lg:py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50">
+          
+          {/* Detalles decorativos patrios sutiles (Venezuela) */}
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#F7D117] via-[#003893] to-[#CF142B]" />
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+              
+              {/* Columna Izquierda: Mensaje y Storytelling */}
+              <div className="lg:col-span-7 flex flex-col space-y-6 sm:space-y-8">
+                
+                <div className="inline-flex items-center gap-2 bg-[#003893]/5 border border-[#003893]/10 rounded-full px-4 py-1.5 text-[#003893] font-semibold text-xs sm:text-sm w-fit">
+                  <Sparkles className="w-4 h-4 text-[#F7D117]" />
+                  <span>Campaña de Alimentos y Medicinas 2026</span>
+                </div>
+
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight sm:leading-none">
+                  Lleva <span className="text-[#CF142B]">esperanza</span> y nutrición directa a <span className="relative inline-block">
+                    Venezuela
+                    <span className="absolute left-0 bottom-1 w-full h-[6px] bg-[#F7D117]/50 -z-10 rounded-full" />
+                  </span>
+                </h1>
+
+                <p className="text-base sm:text-lg lg:text-xl text-slate-600 leading-relaxed max-w-2xl">
+                  En los sectores más vulnerables de Caracas, Zulia y Táchira, la falta de proteínas y medicinas básicas compromete el futuro de miles de niños. Con tu donación segura, nuestro equipo de voluntarios entrega alimentos terapéuticos, asistencia pediátrica y agua limpia directamente en el terreno.
+                </p>
+
+                {/* Grid de Logros Rápidos para Generar Confianza */}
+                <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-2 border-t border-slate-100">
+                  <div className="text-center sm:text-left">
+                    <span className="block text-2xl sm:text-3xl font-extrabold text-[#003893]">+12K</span>
+                    <span className="text-xs text-slate-500 font-medium block mt-0.5">Niños beneficiados</span>
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <span className="block text-2xl sm:text-3xl font-extrabold text-[#CF142B]">92%</span>
+                    <span className="text-xs text-slate-500 font-medium block mt-0.5">Fondos directos al campo</span>
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <span className="block text-2xl sm:text-3xl font-extrabold text-[#F7D117]">100%</span>
+                    <span className="text-xs text-slate-500 font-medium block mt-0.5">Entregas auditadas</span>
+                  </div>
+                </div>
+
+                {/* Fotografía Emotiva de Campo con Caption */}
+                <div className="relative group rounded-2xl overflow-hidden aspect-[16/9] shadow-xl border border-slate-100">
+                  <img 
+                    src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1200" 
+                    alt="Voluntarios entregando alimentos en comunidad venezolana" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex flex-col justify-end p-4 sm:p-6 text-white">
+                    <div className="flex items-center gap-2 mb-1">
+                      <MapPin className="w-4 h-4 text-[#F7D117]" />
+                      <span className="text-xs font-bold tracking-wide uppercase text-slate-200">Sector San Francisco, Estado Zulia</span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-100 font-medium">
+                      &quot;El derecho a la alimentación básica es la semilla para el desarrollo de todo un país.&quot; — Jornada de Junio 2026.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Columna Derecha: WIDGET INTERACTIVO DE DONACIÓN */}
+              <div id="formulario-donacion" className="lg:col-span-5 scroll-mt-24">
+                <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden relative">
+                  
+                  {/* Encabezado del Widget */}
+                  <div className="bg-[#003893] text-white p-6 sm:p-8 text-center relative">
+                    <div className="absolute top-0 right-0 p-3 opacity-10">
+                      <HeartHandshake className="w-24 h-24" />
+                    </div>
+                    <h3 className="font-extrabold text-xl sm:text-2xl tracking-tight">Formulario de Donación</h3>
+                    <p className="text-slate-300 text-xs sm:text-sm mt-1.5">Completa tu aporte de manera segura y transparente</p>
+                    
+                    {/* Barra de Progreso Multi-Step */}
+                    <div className="flex items-center justify-between max-w-xs mx-auto mt-6 relative">
+                      <div className="absolute left-0 right-0 top-1/2 h-[2px] bg-white/20 -translate-y-1/2 z-0" />
+                      
+                      {[1, 2, 3].map((step) => (
+                        <div 
+                          key={step}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all duration-300 ${
+                            currentStep === step 
+                              ? 'bg-[#F7D117] text-[#003893] scale-110 ring-4 ring-[#F7D117]/20' 
+                              : currentStep > step 
+                                ? 'bg-emerald-500 text-white' 
+                                : 'bg-slate-700 text-slate-300'
+                          }`}
+                        >
+                          {currentStep > step ? <Check className="w-4 h-4" /> : step}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between text-[10px] text-slate-300 font-semibold max-w-[280px] mx-auto mt-2">
+                      <span>1. Configurar</span>
+                      <span>2. Identificación</span>
+                      <span>3. Checkout</span>
+                    </div>
+                  </div>
+
+                  {/* Cuerpo del Formulario */}
+                  <div className="p-6 sm:p-8">
+                    
+                    {/* Mensaje de Error global */}
+                    {formErrors && (
+                      <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm rounded-xl font-medium flex items-center gap-2">
+                        <Info className="w-4 h-4 text-rose-600 shrink-0" />
+                        <span>{formErrors}</span>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleNextStep}>
+                      
+                      {/* PASO 1: SELECCIONAR MONTO */}
+                      {currentStep === 1 && (
+                        <div className="space-y-6 animate-fadeIn">
+                          
+                          {/* Selector Frecuencia (Mensual vs Única) */}
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 text-center">
+                              Frecuencia de la Ayuda
+                            </label>
+                            <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl">
+                              <button
+                                type="button"
+                                onClick={() => setDonationFrequency('monthly')}
+                                className={`py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition-all duration-300 ${
+                                  donationFrequency === 'monthly'
+                                    ? 'bg-white text-[#003893] shadow-sm'
+                                    : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                <span className="flex items-center justify-center gap-1.5">
+                                  Mensual
+                                  <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-[#CF142B] text-[9px] font-extrabold uppercase">
+                                    Recomendado
+                                  </span>
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDonationFrequency('once')}
+                                className={`py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition-all duration-300 ${
+                                  donationFrequency === 'once'
+                                    ? 'bg-white text-[#003893] shadow-sm'
+                                    : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                Única vez
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Botones de Montos */}
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                              Selecciona un monto de donación (USD)
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              {[10, 25, 50, 100].map((amount) => (
+                                <button
+                                  key={amount}
+                                  type="button"
+                                  onClick={() => handleAmountSelect(amount)}
+                                  className={`py-3 px-2 rounded-2xl text-center border font-bold text-lg sm:text-xl transition-all duration-300 ${
+                                    selectedAmount === amount
+                                      ? 'border-[#003893] bg-[#003893]/5 text-[#003893] ring-2 ring-[#003893]/20'
+                                      : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
+                                  }`}
+                                >
+                                  ${amount}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Campo Personalizado */}
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                              O ingresa otro monto personalizado
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-extrabold text-lg">$</span>
+                              <input
+                                type="text"
+                                placeholder="Ej: 75"
+                                value={customAmount}
+                                onChange={handleCustomAmountChange}
+                                className={`w-full pl-8 pr-12 py-3 rounded-2xl border text-lg font-bold text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 transition-all ${
+                                  selectedAmount === 'custom' 
+                                    ? 'border-[#003893] ring-2 ring-[#003893]/20' 
+                                    : 'border-slate-200 focus:border-slate-300'
+                                }`}
+                              />
+                              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">USD</span>
+                            </div>
+                          </div>
+
+                          {/* Cuadro de Impacto Dinámico */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#CF142B] block mb-1">Tu Impacto Estimado</span>
+                            <p className="text-slate-700 text-xs sm:text-sm font-medium leading-relaxed">
+                              {getDynamicImpactMessage(activeAmount)}
+                            </p>
+                            {donationFrequency === 'monthly' && (
+                              <span className="block mt-2 text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded w-fit">
+                                ↺ Compromiso mensual de ayuda recurrente
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Botón Siguiente */}
+                          <button
+                            type="submit"
+                            className="w-full py-4 rounded-2xl bg-[#CF142B] text-white font-extrabold text-base hover:bg-[#b81024] transition-all shadow-lg shadow-rose-200 flex items-center justify-center gap-2 group cursor-pointer"
+                          >
+                            Continuar con ${activeAmount} {donationFrequency === 'monthly' ? '/ mes' : ''}
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* PASO 2: DATOS DE IDENTIFICACIÓN */}
+                      {currentStep === 2 && (
+                        <div className="space-y-4 animate-fadeIn">
+                          <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider border-b pb-2 mb-2">
+                            Tus Datos Personales
+                          </h4>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-semibold text-slate-500 mb-1">Nombre *</label>
+                              <input
+                                type="text"
+                                required
+                                value={personalData.firstName}
+                                onChange={(e) => setPersonalData({...personalData, firstName: e.target.value})}
+                                placeholder="Juan"
+                                className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#003893] text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-slate-500 mb-1">Apellido</label>
+                              <input
+                                type="text"
+                                value={personalData.lastName}
+                                onChange={(e) => setPersonalData({...personalData, lastName: e.target.value})}
+                                placeholder="Pérez"
+                                className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#003893] text-sm"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1">Correo Electrónico *</label>
+                            <input
+                              type="email"
+                              required
+                              value={personalData.email}
+                              onChange={(e) => setPersonalData({...personalData, email: e.target.value})}
+                              placeholder="juan.perez@example.com"
+                              className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#003893] text-sm"
+                            />
+                            <p className="text-[10px] text-slate-400 mt-1">
+                              Aquí te enviaremos tu comprobante fiscal y los informes bimestrales de campo.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1">Teléfono Móvil (Opcional)</label>
+                            <input
+                              type="tel"
+                              value={personalData.phone}
+                              onChange={(e) => setPersonalData({...personalData, phone: e.target.value})}
+                              placeholder="+1 555 123 4567"
+                              className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#003893] text-sm"
+                            />
+                          </div>
+
+                          {/* Casillas de Verificación */}
+                          <div className="space-y-2 pt-2">
+                            <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600">
+                              <input
+                                type="checkbox"
+                                checked={isAnonymous}
+                                onChange={(e) => setIsAnonymous(e.target.checked)}
+                                className="mt-0.5 rounded border-slate-300 text-[#003893] focus:ring-[#003893]"
+                              />
+                              <span>Deseo mantener mi donación como anónima en el portal público.</span>
+                            </label>
+                            <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600">
+                              <input
+                                type="checkbox"
+                                checked={wantsReports}
+                                onChange={(e) => setWantsReports(e.target.checked)}
+                                className="mt-0.5 rounded border-slate-300 text-[#003893] focus:ring-[#003893]"
+                              />
+                              <span>Acepto recibir boletines mensuales con fotografías reales e informes financieros transparentes del comedor.</span>
+                            </label>
+                          </div>
+
+                          {/* Botones de Navegación */}
+                          <div className="grid grid-cols-3 gap-3 pt-4">
+                            <button
+                              type="button"
+                              onClick={handlePrevStep}
+                              className="py-3 px-2 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-sm text-center flex items-center justify-center gap-1"
+                            >
+                              <ArrowLeft className="w-4 h-4" />
+                              Atrás
+                            </button>
+                            <button
+                              type="submit"
+                              className="col-span-2 py-3 rounded-2xl bg-[#CF142B] text-white font-extrabold text-sm hover:bg-[#b81024] transition-all flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                              Siguiente: Método de Pago
+                              <ArrowRight className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* PASO 3: PASARELA DE PAGO (CHECKOUT SIMULADO) */}
+                      {currentStep === 3 && (
+                        <div className="space-y-4 animate-fadeIn">
+                          <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider border-b pb-2 mb-1">
+                            Método de Pago Seguro
+                          </h4>
+
+                          {/* Selector de Opción de Pago A o B */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setPersonalData({ ...personalData, paymentMethod: 'card' })}
+                              className={`py-3 px-3 rounded-2xl font-bold text-xs sm:text-sm border transition-all duration-300 flex flex-col items-center gap-1.5 cursor-pointer ${
+                                personalData.paymentMethod === 'card'
+                                  ? 'border-[#003893] bg-[#003893]/5 text-[#003893] ring-2 ring-[#003893]/10'
+                                  : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
+                              }`}
+                            >
+                              <CreditCard className="w-5 h-5" />
+                              <span>Tarjeta de Crédito / Débito</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setPersonalData({ ...personalData, paymentMethod: 'qrexpress' })}
+                              className={`py-3 px-3 rounded-2xl font-bold text-xs sm:text-sm border transition-all duration-300 flex flex-col items-center gap-1.5 cursor-pointer ${
+                                personalData.paymentMethod === 'qrexpress'
+                                  ? 'border-[#CF142B] bg-[#CF142B]/5 text-[#CF142B] ring-2 ring-[#CF142B]/10'
+                                  : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
+                              }`}
+                            >
+                              <div className="flex gap-1">
+                                <span className="w-2.5 h-2.5 bg-[#F7D117] rounded-full animate-ping" />
+                                <Globe className="w-5 h-5 text-slate-500" />
+                              </div>
+                              <span>Transferencia / QR Express</span>
+                            </button>
+                          </div>
+
+                          {/* Contenedor del Formulario o QR */}
+                          <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100 min-h-[220px] transition-all duration-300">
+                            
+                            {/* OPCIÓN A: PAGO CON TARJETA DE CRÉDITO/DÉBITO */}
+                            {personalData.paymentMethod === 'card' && (
+                              <div className="space-y-3 animate-fadeIn">
+                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detalles de la Tarjeta</span>
+                                <div>
+                                  <input
+                                    type="text"
+                                    required
+                                    value={personalData.cardHolder}
+                                    onChange={(e) => setPersonalData({...personalData, cardHolder: e.target.value})}
+                                    placeholder="Nombre del Titular (Ej. Juan Pérez)"
+                                    className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#003893]/20 focus:border-[#003893]"
+                                  />
+                                </div>
+                                <div>
+                                  <input
+                                    type="text"
+                                    required
+                                    value={personalData.cardNumber}
+                                    onChange={(e) => {
+                                      const val = e.target.value.replace(/\D/g, '').slice(0, 16);
+                                      const matches = val.match(/\d{4,16}/g);
+                                      const match = (matches && matches[0]) || '';
+                                      const parts = [];
+                                      for (let i = 0, len = match.length; i < len; i += 4) {
+                                        parts.push(match.substring(i, i + 4));
+                                      }
+                                      setPersonalData({...personalData, cardNumber: parts.length > 0 ? parts.join(' ') : val});
+                                    }}
+                                    placeholder="Número de Tarjeta (4111 2222 3333 4444)"
+                                    className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#003893]/20 focus:border-[#003893]"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <input
+                                    type="text"
+                                    required
+                                    maxLength={5}
+                                    value={personalData.cardExpiry}
+                                    onChange={(e) => {
+                                      let val = e.target.value.replace(/\D/g, '');
+                                      if (val.length > 2) {
+                                        val = val.slice(0, 2) + '/' + val.slice(2, 4);
+                                      }
+                                      setPersonalData({...personalData, cardExpiry: val});
+                                    }}
+                                    placeholder="MM/AA"
+                                    className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs text-center focus:outline-none focus:ring-2 focus:ring-[#003893]/20 focus:border-[#003893]"
+                                  />
+                                  <input
+                                    type="password"
+                                    required
+                                    maxLength={4}
+                                    value={personalData.cardCvv}
+                                    onChange={(e) => setPersonalData({...personalData, cardCvv: e.target.value.replace(/\D/g, '')})}
+                                    placeholder="CVV / CVC"
+                                    className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs text-center focus:outline-none focus:ring-2 focus:ring-[#003893]/20 focus:border-[#003893]"
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {/* OPCIÓN B: CODI/QR EXPRESS INTERACTIVO CON SUB-TABS */}
+                            {personalData.paymentMethod === 'qrexpress' && (
+                              <div className="space-y-4 animate-fadeIn">
+                                
+                                {/* Sub-Tab Bar de Canales QR */}
+                                <div className="flex border-b border-slate-200 pb-1.5 gap-1.5">
+                                  {[
+                                    { id: 'paypal', name: 'PayPal QR', activeColor: 'border-[#00457C] text-[#00457C]', bgColor: 'hover:bg-blue-50/50' },
+                                    { id: 'nequi', name: 'Nequi QR', activeColor: 'border-[#FF007F] text-[#3F1965]', bgColor: 'hover:bg-pink-50/50' },
+                                    { id: 'breb', name: 'Bre-B QR', activeColor: 'border-[#F7D117] text-slate-800', bgColor: 'hover:bg-amber-50/50' }
+                                  ].map((tab) => (
+                                    <button
+                                      key={tab.id}
+                                      type="button"
+                                      onClick={() => setQrTab(tab.id as 'paypal' | 'nequi' | 'breb')}
+                                      className={`flex-1 pb-2 text-[11px] font-extrabold text-center border-b-2 transition-all duration-300 ${
+                                        qrTab === tab.id
+                                          ? tab.activeColor
+                                          : 'border-transparent text-slate-400 hover:text-slate-600 ' + tab.bgColor
+                                      }`}
+                                    >
+                                      {tab.name}
+                                    </button>
+                                  ))}
+                                </div>
+
+                                {/* Contenido Dinámico de cada Sub-Tab QR */}
+                                {qrTab === 'paypal' && (
+                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
+                                    <div className="sm:col-span-4 flex justify-center">
+                                      {/* Mock QR de PayPal en SVG */}
+                                      <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-sm relative group">
+                                        <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                          {/* Finders */}
+                                          <rect x="0" y="0" width="28" height="28" fill="#003087" rx="2" />
+                                          <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
+                                          <rect x="8" y="8" width="12" height="12" fill="#0079C1" rx="0.5" />
+
+                                          <rect x="72" y="0" width="28" height="28" fill="#003087" rx="2" />
+                                          <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
+                                          <rect x="80" y="8" width="12" height="12" fill="#0079C1" rx="0.5" />
+
+                                          <rect x="0" y="72" width="28" height="28" fill="#003087" rx="2" />
+                                          <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
+                                          <rect x="8" y="80" width="12" height="12" fill="#0079C1" rx="0.5" />
+
+                                          {/* Pixels */}
+                                          <rect x="36" y="4" width="8" height="8" fill="#003087" />
+                                          <rect x="48" y="0" width="8" height="4" fill="#0079C1" />
+                                          <rect x="60" y="8" width="4" height="12" fill="#003087" />
+                                          <rect x="36" y="20" width="12" height="4" fill="#0079C1" />
+                                          <rect x="40" y="36" width="16" height="8" fill="#003087" />
+                                          <rect x="12" y="36" width="12" height="12" fill="#0079C1" />
+                                          <rect x="76" y="36" width="20" height="16" fill="#003087" />
+                                          <rect x="0" y="52" width="16" height="8" fill="#0079C1" />
+                                          <rect x="36" y="52" width="24" height="12" fill="#003087" />
+                                          <rect x="72" y="60" width="12" height="8" fill="#0079C1" />
+                                          <rect x="40" y="76" width="8" height="16" fill="#003087" />
+                                          <rect x="56" y="72" width="12" height="12" fill="#0079C1" />
+                                          <rect x="80" y="80" width="16" height="16" fill="#003087" />
+
+                                          {/* Mini Logo */}
+                                          <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
+                                          <circle cx="50" cy="50" r="5" fill="#003087" />
+                                        </svg>
+                                        <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                          <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Campaña PayPal</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-8 space-y-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-extrabold text-[#003087] italic text-sm tracking-tighter">Pay<span className="text-[#0079C1]">Pal</span> <span className="text-xs font-bold not-italic text-slate-500 uppercase tracking-wider ml-1">Internacional</span></span>
+                                      </div>
+                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                        Escanea desde tu app PayPal o escanea el código para procesar tu donación internacional directamente a nuestra cuenta oficial registrada.
+                                      </p>
+                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-slate-400">Correo Cuenta:</span>
+                                          <span className="font-mono font-bold text-slate-800">donaciones@esperanzaactiva.org</span>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                                          <span className="text-slate-400">Destinatario:</span>
+                                          <span className="font-semibold text-slate-700">Esperanza Activa Foundation</span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => copyToClipboard('donaciones@esperanzaactiva.org', 'paypal')}
+                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                      >
+                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'paypal' ? 'scale-110' : 'scale-0'}`} />
+                                        <span>{copiedText === 'paypal' ? '¡Correo Copiado!' : 'Copiar Correo PayPal'}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {qrTab === 'nequi' && (
+                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
+                                    <div className="sm:col-span-4 flex justify-center">
+                                      {/* Mock QR de Nequi en SVG */}
+                                      <div className="bg-[#3F1965]/10 p-2.5 rounded-2xl border border-purple-200 shadow-sm relative group">
+                                        <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                          {/* Finders */}
+                                          <rect x="0" y="0" width="28" height="28" fill="#3F1965" rx="2" />
+                                          <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
+                                          <rect x="8" y="8" width="12" height="12" fill="#FF007F" rx="0.5" />
+
+                                          <rect x="72" y="0" width="28" height="28" fill="#3F1965" rx="2" />
+                                          <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
+                                          <rect x="80" y="8" width="12" height="12" fill="#FF007F" rx="0.5" />
+
+                                          <rect x="0" y="72" width="28" height="28" fill="#3F1965" rx="2" />
+                                          <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
+                                          <rect x="8" y="80" width="12" height="12" fill="#FF007F" rx="0.5" />
+
+                                          {/* Pixels */}
+                                          <rect x="36" y="0" width="8" height="8" fill="#FF007F" />
+                                          <rect x="48" y="4" width="4" height="12" fill="#3F1965" />
+                                          <rect x="56" y="0" width="12" height="4" fill="#FF007F" />
+                                          <rect x="36" y="16" width="16" height="4" fill="#3F1965" />
+                                          <rect x="64" y="24" width="4" height="12" fill="#FF007F" />
+                                          <rect x="16" y="36" width="12" height="16" fill="#3F1965" />
+                                          <rect x="36" y="36" width="20" height="8" fill="#FF007F" />
+                                          <rect x="72" y="36" width="24" height="4" fill="#3F1965" />
+                                          <rect x="0" y="52" width="8" height="12" fill="#FF007F" />
+                                          <rect x="48" y="48" width="16" height="16" fill="#3F1965" />
+                                          <rect x="76" y="52" width="12" height="12" fill="#FF007F" />
+                                          <rect x="36" y="68" width="24" height="4" fill="#3F1965" />
+                                          <rect x="40" y="76" width="12" height="16" fill="#FF007F" />
+                                          <rect x="60" y="80" width="8" height="8" fill="#3F1965" />
+                                          <rect x="80" y="76" width="16" height="16" fill="#FF007F" />
+
+                                          {/* Mini Logo */}
+                                          <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
+                                          <rect x="45" y="45" width="10" height="10" fill="#3F1965" rx="2" />
+                                        </svg>
+                                        <div className="absolute inset-0 bg-[#3F1965]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                          <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Campaña Nequi</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-8 space-y-2">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-extrabold text-[#3F1965] text-sm tracking-tight">NEQUI <span className="px-1.5 py-0.5 rounded bg-[#FF007F]/10 text-[#FF007F] text-[9px] font-extrabold uppercase tracking-widest ml-1">Fácil & Rápido</span></span>
+                                      </div>
+                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                        Escanea desde tu app móvil Nequi para realizar transferencias inmediatas de ayuda humanitaria desde Colombia de forma segura y sin recargos.
+                                      </p>
+                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-slate-400">Celular Nequi:</span>
+                                          <span className="font-mono font-bold text-slate-800">+57 312 456 7890</span>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                                          <span className="text-slate-400">Titular Cuenta:</span>
+                                          <span className="font-semibold text-slate-700">Esperanza Activa Colombia (ONG)</span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => copyToClipboard('+573124567890', 'nequi')}
+                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                      >
+                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'nequi' ? 'scale-110' : 'scale-0'}`} />
+                                        <span>{copiedText === 'nequi' ? '¡Número Copiado!' : 'Copiar Número Celular'}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {qrTab === 'breb' && (
+                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
+                                    <div className="sm:col-span-4 flex justify-center">
+                                      {/* Mock QR de Bre-B en SVG */}
+                                      <div className="bg-amber-500/10 p-2.5 rounded-2xl border border-yellow-200 shadow-sm relative group">
+                                        <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                          {/* Finders */}
+                                          <rect x="0" y="0" width="28" height="28" fill="#F7D117" rx="2" />
+                                          <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
+                                          <rect x="8" y="8" width="12" height="12" fill="#003893" rx="0.5" />
+
+                                          <rect x="72" y="0" width="28" height="28" fill="#F7D117" rx="2" />
+                                          <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
+                                          <rect x="80" y="8" width="12" height="12" fill="#003893" rx="0.5" />
+
+                                          <rect x="0" y="72" width="28" height="28" fill="#F7D117" rx="2" />
+                                          <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
+                                          <rect x="8" y="80" width="12" height="12" fill="#003893" rx="0.5" />
+
+                                          {/* Pixels */}
+                                          <rect x="36" y="0" width="12" height="8" fill="#003893" />
+                                          <rect x="52" y="4" width="4" height="4" fill="#F7D117" />
+                                          <rect x="60" y="0" width="8" height="8" fill="#003893" />
+                                          <rect x="36" y="12" width="16" height="12" fill="#F7D117" />
+                                          <rect x="60" y="20" width="8" height="8" fill="#003893" />
+                                          <rect x="12" y="36" width="20" height="8" fill="#F7D117" />
+                                          <rect x="36" y="36" width="12" height="16" fill="#003893" />
+                                          <rect x="56" y="36" width="8" height="8" fill="#F7D117" />
+                                          <rect x="72" y="44" width="16" height="12" fill="#003893" />
+                                          <rect x="0" y="56" width="12" height="12" fill="#F7D117" />
+                                          <rect x="36" y="60" width="16" height="4" fill="#003893" />
+                                          <rect x="56" y="52" width="12" height="12" fill="#F7D117" />
+                                          <rect x="76" y="64" width="12" height="4" fill="#003893" />
+                                          <rect x="40" y="72" width="16" height="16" fill="#F7D117" />
+                                          <rect x="64" y="80" width="8" height="8" fill="#003893" />
+                                          <rect x="80" y="76" width="16" height="16" fill="#F7D117" />
+
+                                          {/* Mini Logo */}
+                                          <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
+                                          <polygon points="50,44 56,54 44,54" fill="#003893" />
+                                        </svg>
+                                        <div className="absolute inset-0 bg-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                          <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Canal Bre-B</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-8 space-y-2">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-extrabold text-slate-800 text-sm tracking-tight">Bre-B <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-extrabold uppercase ml-1">Pagos Interbancarios</span></span>
+                                      </div>
+                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                        Bre-B es el sistema unificado de pagos rápidos del Banco de la República de Colombia. Escanea con la aplicación de tu entidad financiera favorita para donar.
+                                      </p>
+                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-slate-400">Llave / Alias Bre-B:</span>
+                                          <span className="font-mono font-bold text-slate-800">donaciones.venezuela@breb.com</span>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                                          <span className="text-slate-400">Tipo de Llave:</span>
+                                          <span className="font-semibold text-slate-700">E-mail Corporativo</span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => copyToClipboard('donaciones.venezuela@breb.com', 'breb')}
+                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                      >
+                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'breb' ? 'scale-110' : 'scale-0'}`} />
+                                        <span>{copiedText === 'breb' ? '¡Llave Copiada!' : 'Copiar Llave Bre-B'}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="border-t border-slate-200 pt-3 flex flex-col space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Confirmación de Operación</span>
+                                  <label className="flex items-start gap-2.5 text-xs text-slate-600 font-medium cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={personalData.qrConfirmationChecked}
+                                      onChange={(e) => setPersonalData({...personalData, qrConfirmationChecked: e.target.checked})}
+                                      className="mt-0.5 rounded border-slate-300 text-[#CF142B] focus:ring-[#CF142B] w-4 h-4"
+                                    />
+                                    <span>Ya he escaneado el código QR y completado la transferencia por el monto de <strong>${activeAmount} USD</strong>.</span>
+                                  </label>
+                                </div>
+                                
+                              </div>
+                            )}
+
+                          </div>
+
+                          {/* Garantía de Seguridad */}
+                          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-500 font-medium">
+                            <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Donación 100% Protegida • Procesamiento Seguro</span>
+                          </div>
+
+                          {/* Botones de Navegación */}
+                          <div className="grid grid-cols-3 gap-3 pt-2">
+                            <button
+                              type="button"
+                              onClick={handlePrevStep}
+                              className="py-3 px-2 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-sm text-center flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                              <ArrowLeft className="w-4 h-4" />
+                              Atrás
+                            </button>
+                            <button
+                              type="submit"
+                              className="col-span-2 py-3 rounded-2xl bg-emerald-600 text-white font-extrabold text-sm hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-100 cursor-pointer"
+                            >
+                              <Lock className="w-4 h-4 text-emerald-100" />
+                              Confirmar Donación de ${activeAmount}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* PASO 4: PANTALLA DE ÉXITO DE DONACIÓN */}
+                      {currentStep === 4 && (
+                        <div className="text-center space-y-6 py-4 animate-scaleUp">
+                          
+                          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                            <Heart className="w-8 h-8 text-emerald-600 fill-emerald-600 animate-pulse" />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <h4 className="text-2xl font-black text-slate-900 tracking-tight">
+                              ¡Muchísimas gracias, {personalData.firstName}!
+                            </h4>
+                            <p className="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
+                              Tu donación {donationFrequency === 'monthly' ? 'mensual' : 'única'} de <strong className="text-emerald-700 font-extrabold text-sm">${activeAmount} USD</strong> ha sido confirmada. Tu aporte se traduce inmediatamente en platos de comida y tratamientos de vitaminas.
+                            </p>
+                          </div>
+
+                          {/* CERTIFICADO DE ESPERANZA INTERACTIVO */}
+                          <div className="max-w-md mx-auto bg-white rounded-2xl border-2 border-amber-100 p-5 sm:p-6 shadow-md relative overflow-hidden text-center space-y-4">
+                            {/* Venezuela flag colors top ribbon */}
+                            <div className="absolute top-0 left-0 right-0 h-1 flex">
+                              <div className="flex-1 h-full bg-[#F7D117]" />
+                              <div className="flex-1 h-full bg-[#003893]" />
+                              <div className="flex-1 h-full bg-[#CF142B]" />
+                            </div>
+
+                            <div className="flex justify-between items-start text-[9px] text-slate-400 font-mono">
+                              <span>ESPERANZA ACTIVA NGO</span>
+                              <span>COD: EA-CERT-{Math.floor(100000 + Math.random() * 900000)}</span>
+                            </div>
+
+                            <div className="space-y-2">
+                              <span className="text-[10px] uppercase font-bold tracking-widest text-[#003893] bg-[#003893]/5 px-2.5 py-1 rounded-full">
+                                Certificado de Esperanza
+                              </span>
+                              <p className="text-[10px] text-slate-400 italic">Otorgado con profunda gratitud a:</p>
+                              
+                              <h5 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 capitalize">
+                                {personalData.firstName} {personalData.lastName || 'Amigo de Venezuela'}
+                              </h5>
+                            </div>
+
+                            <p className="text-[11px] text-slate-500 leading-relaxed italic max-w-sm mx-auto">
+                              "Por sembrar una semilla de vida, salud y amor mediante su valiosa contribución humanitaria de <strong className="text-[#003893] font-bold">${activeAmount} USD</strong> destinada a proveer suplementos de micronutrientes y alimentación básica para rescatar de la desnutrición a la niñez venezolana."
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100 text-left text-[9px] text-slate-400 font-mono">
+                              <div>
+                                <span className="block font-semibold text-slate-500">FECHA DE EMISIÓN</span>
+                                <span className="text-slate-700 font-bold">{new Date().toLocaleDateString()}</span>
+                              </div>
+                              <div className="text-right">
+                                <span className="block font-semibold text-slate-500">PRESIDENTE DE COMITÉ</span>
+                                <span className="text-[#CF142B] font-bold">Ayuda Humanitaria Venezuela</span>
+                              </div>
+                            </div>
+
+                            {/* Sello de Autenticidad */}
+                            <div className="absolute bottom-12 right-6 opacity-10 pointer-events-none">
+                              <Award className="w-20 h-20 text-[#F7D117] fill-current" />
+                            </div>
+                          </div>
+
+                          {/* BOTÓN DE DESCARGA INTERACTIVO */}
+                          <div className="max-w-xs mx-auto">
+                            <button
+                              type="button"
+                              onClick={handleDownloadCertificate}
+                              disabled={downloadingCertificate}
+                              className={`w-full py-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                                certificateDownloaded 
+                                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' 
+                                  : 'bg-amber-500 hover:bg-amber-600 text-slate-900 shadow-md shadow-amber-100'
+                              }`}
+                            >
+                              {downloadingCertificate ? (
+                                <>
+                                  <span className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                                  <span>Generando Certificado PDF...</span>
+                                </>
+                              ) : certificateDownloaded ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4 text-emerald-600 fill-emerald-100" />
+                                  <span>¡Certificado Descargado!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Award className="w-4 h-4" />
+                                  <span>Descargar Certificado Oficial</span>
+                                </>
+                              )}
+                            </button>
+                            {certificateDownloaded && (
+                              <span className="text-[9px] text-emerald-600 block mt-1 animate-pulse">
+                                Comprobante de donación descargado en tu dispositivo.
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Recibo Técnico de Transacción */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-left text-xs space-y-2.5 max-w-xs mx-auto">
+                            <div className="flex justify-between border-b pb-2 text-[10px]">
+                              <span className="font-bold text-slate-400 uppercase tracking-wider">Recibo Digital</span>
+                              <span className="font-mono text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">Exitoso</span>
+                            </div>
+                            <div className="space-y-1 text-[11px] text-slate-600 font-medium">
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Canal de Pago:</span>
+                                <span className="text-slate-900 font-bold capitalize">
+                                  {personalData.paymentMethod === 'card' ? 'Tarjeta' : 'QR Express'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Email:</span>
+                                <span className="text-slate-900">{personalData.email}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Frecuencia:</span>
+                                <span className="text-slate-900 capitalize">{donationFrequency === 'monthly' ? 'Mensual' : 'Única'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Referencia:</span>
+                                <span className="font-mono text-slate-800 font-bold">EA-{Math.floor(100000 + Math.random() * 900000)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Botones de acción final */}
+                          <div className="space-y-2.5 max-w-xs mx-auto pt-1">
+                            <button
+                              type="button"
+                              onClick={copyCampaignLink}
+                              className="w-full py-3 rounded-xl border border-slate-200 hover:bg-slate-50 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Share2 className="w-4 h-4 text-[#003893]" />
+                              {copiedLink ? '¡Enlace de campaña copiado!' : 'Compartir campaña con amigos'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={resetDonation}
+                              className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                            >
+                              Hacer otra contribución
+                            </button>
+                          </div>
+
+                        </div>
+                      )}
+
+                    </form>
+
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* 3. SECCIÓN DE IMPACTO & TRANSPARENCIA (Transparency) */}
+        <section id="como-ayudar" className="py-20 bg-white scroll-mt-18">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#CF142B] bg-rose-50 px-3 py-1 rounded-full">
+                Transparencia Absoluta
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                ¿Qué logramos exactamente con cada donación?
+              </h2>
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                Creemos firmemente en la transparencia de recursos. Cada centavo donado tiene un impacto directo y rastreable en nuestras zonas de intervención. No especulamos con la ayuda, la llevamos directo al campo.
+              </p>
+            </div>
+
+            {/* Grid de Impacto de 4 Columnas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {impactLevels.map((level, idx) => (
+                <div 
+                  key={idx}
+                  className="bg-slate-50 rounded-2xl p-6 sm:p-8 border border-slate-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    {level.icon}
+                  </div>
+                  
+                  <span className="text-3xl font-extrabold text-slate-900 block mb-1">
+                    ${level.amount} USD
+                  </span>
+                  
+                  <h4 className="font-bold text-base text-[#003893] mb-2">
+                    {level.title}
+                  </h4>
+                  
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
+                    {level.description}
+                  </p>
+
+                  <div className="border-t pt-4 text-[11px] text-slate-400 font-medium leading-relaxed italic">
+                    {level.detail}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Certificaciones y Auditoría */}
+            <div className="mt-16 bg-[#003893] rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <Award className="w-96 h-96" />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                <div className="lg:col-span-8 space-y-4">
+                  <div className="flex items-center gap-2 text-[#F7D117]">
+                    <Award className="w-5 h-5 fill-current" />
+                    <span className="text-xs font-extrabold uppercase tracking-widest">Organización de Confianza</span>
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    Auditorías independientes externas y trazabilidad
+                  </h3>
+                  <p className="text-slate-200 text-sm sm:text-base leading-relaxed max-w-3xl">
+                    Para mantener los más altos estándares éticos, todas nuestras compras e inventarios son auditados de manera bimestral por firmas externas. Cada compra de alimentos terapéuticos es mapeada mediante códigos de lote para verificar su recepción por parte de las familias venezolanas.
+                  </p>
+                </div>
+                <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-4 justify-center">
+                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/15 flex items-center gap-3">
+                    <ShieldCheck className="w-8 h-8 text-[#F7D117] shrink-0" />
+                    <div>
+                      <span className="block font-bold text-xs">92% Eficiencia</span>
+                      <span className="text-[10px] text-slate-300">Costo operativo mínimo</span>
+                    </div>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/15 flex items-center gap-3">
+                    <CheckCircle className="w-8 h-8 text-emerald-400 shrink-0" />
+                    <div>
+                      <span className="block font-bold text-xs">100% Legal</span>
+                      <span className="text-[10px] text-slate-300">ONG registrada en el exterior</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* 4. SECCIÓN DE TESTIMONIOS (Field Stories) */}
+        <section id="testimonios" className="py-20 bg-slate-50 scroll-mt-18">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#003893] bg-[#003893]/5 px-3 py-1 rounded-full">
+                Historias de Esperanza
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Voces reales desde el corazón de la ayuda
+              </h2>
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                Conoce a las personas que coordinan los esfuerzos médicos y alimenticios en Venezuela, y a las familias que han recuperado su sonrisa gracias a tu generosidad.
+              </p>
+            </div>
+
+            {/* Grid de Testimonios */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {testimonials.map((test, idx) => (
+                <div 
+                  key={idx}
+                  className="bg-white rounded-2xl p-6 sm:p-8 shadow-md hover:shadow-lg transition-all border border-slate-100 flex flex-col justify-between"
+                >
+                  <div className="space-y-4">
+                    {/* Badge */}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${
+                      test.badge === 'Equipo Médico' 
+                        ? 'bg-rose-50 text-[#CF142B]' 
+                        : test.badge === 'Voluntario' 
+                          ? 'bg-amber-50 text-amber-800' 
+                          : 'bg-indigo-50 text-indigo-900'
+                    }`}>
+                      {test.badge}
+                    </span>
+                    
+                    <p className="text-slate-600 text-xs sm:text-sm leading-relaxed italic">
+                      &quot;{test.text}&quot;
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3.5 mt-8 pt-6 border-t border-slate-100">
+                    <img 
+                      src={test.image} 
+                      alt={test.name} 
+                      className="w-11 h-11 rounded-full object-cover shadow-sm shrink-0"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div>
+                      <h5 className="font-bold text-xs sm:text-sm text-[#003893]">{test.name}</h5>
+                      <p className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                        {test.role} • <span className="font-semibold text-slate-600">{test.location}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </section>
+
+        {/* 5. PREGUNTAS FRECUENTES (FAQ Accordion) */}
+        <section id="faq" className="py-20 bg-white scroll-mt-18">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="text-center space-y-4 mb-12">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#CF142B] bg-rose-50 px-3 py-1 rounded-full">
+                Soporte y Dudas
+              </span>
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                Preguntas Frecuentes
+              </h2>
+              <p className="text-slate-600 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+                ¿Tienes alguna inquietud sobre cómo realizamos el envío de fondos, la deducibilidad tributaria o la seguridad de tus datos? Aquí te lo explicamos todo de manera abierta.
+              </p>
+            </div>
+
+            {/* Lista de Acordeones */}
+            <div className="space-y-4">
+              {faqs.map((faq, idx) => {
+                const isOpen = expandedFaq === idx;
+                return (
+                  <div 
+                    key={idx}
+                    className="border border-slate-100 rounded-2xl overflow-hidden bg-slate-50/50 hover:bg-slate-50 transition-colors"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setExpandedFaq(isOpen ? null : idx)}
+                      className="w-full px-6 py-5 text-left flex justify-between items-center font-bold text-sm sm:text-base text-slate-900 hover:text-[#003893] transition-colors focus:outline-none"
+                    >
+                      <span>{faq.question}</span>
+                      {isOpen ? (
+                        <ChevronUp className="w-5 h-5 text-slate-400 shrink-0" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-slate-400 shrink-0" />
+                      )}
+                    </button>
+                    
+                    {isOpen && (
+                      <div className="px-6 pb-5 text-slate-600 text-xs sm:text-sm leading-relaxed border-t border-slate-100/60 pt-4 bg-white animate-fadeIn">
+                        {faq.answer}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* CTA Final debajo de FAQ */}
+            <div className="mt-16 text-center space-y-4 p-8 bg-amber-50 rounded-3xl border border-amber-100/70">
+              <h4 className="font-extrabold text-base sm:text-lg text-[#003893]">¿Tienes otra consulta o deseas donar a gran escala?</h4>
+              <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
+                Si representas a una fundación corporativa, empresa o deseas realizar una donación de insumos médicos de forma física desde Estados Unidos, Europa o Colombia, contáctanos directamente.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-3.5 pt-2">
+                <a 
+                  href="mailto:coordinacion@esperanzaactiva.org"
+                  className="px-5 py-2.5 bg-[#003893] hover:bg-[#00225c] text-white rounded-xl text-xs font-bold transition-all"
+                >
+                  Escribir a Coordinación
+                </a>
+                <a 
+                  href="#formulario-donacion"
+                  className="px-5 py-2.5 bg-[#CF142B] hover:bg-[#b81024] text-white rounded-xl text-xs font-bold transition-all"
+                >
+                  Hacer Donación Regular
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
+
+      {/* 6. FOOTER (PIE DE PÁGINA) */}
+      <footer className="bg-slate-950 text-slate-400 py-12 sm:py-16 border-t border-slate-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+            
+            {/* Columna Logo e Info */}
+            <div className="space-y-4 md:col-span-1.5">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#003893] via-[#CF142B] to-[#F7D117] p-[1.5px] flex items-center justify-center">
+                  <div className="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center">
+                    <Heart className="w-4 h-4 text-white fill-white" />
+                  </div>
+                </div>
+                <span className="font-bold text-white text-base tracking-tight">
+                  Esperanza Activa
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed text-slate-400 max-w-sm">
+                Organización de carácter humanitario, sin fines de lucro, legalmente incorporada y dedicada a canalizar ayuda alimentaria y de salud para el rescate nutricional de la infancia vulnerable en Venezuela.
+              </p>
+              <p className="text-[10px] text-slate-500 font-mono">
+                Licencia de Operación NGO Nro: US-503C-982110
+              </p>
+            </div>
+
+            {/* Columna Enlaces de Interés */}
+            <div className="space-y-3">
+              <h5 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">La Fundación</h5>
+              <ul className="space-y-2 text-xs">
+                <li><a href="#como-ayudar" className="hover:text-white transition-colors">¿Cómo ayudamos?</a></li>
+                <li><a href="#impacto" className="hover:text-white transition-colors">Nuestros Programas</a></li>
+                <li><a href="#testimonios" className="hover:text-white transition-colors">Historias de éxito</a></li>
+                <li><a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Transparencia y Finanzas</a></li>
+              </ul>
+            </div>
+
+            {/* Columna Contacto */}
+            <div className="space-y-3">
+              <h5 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">Contacto Internacional</h5>
+              <ul className="space-y-2 text-xs">
+                <li className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#F7D117]" />
+                  <span>Sede: Miami, FL, EE.UU. / Caracas, Venezuela</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#CF142B]" />
+                  <span>donaciones@esperanzaactiva.org</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-[#003893]" />
+                  <span>Soporte: +1 (786) 555-0199</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Columna Garantía o Seguridad */}
+            <div className="space-y-3">
+              <h5 className="font-bold text-white text-xs sm:text-sm uppercase tracking-wider">Compromiso Legal</h5>
+              <p className="text-xs leading-relaxed text-slate-400">
+                Todas las transacciones con tarjeta de crédito están procesadas a través de servidores con cifrado TLS 1.3 de última generación de nivel bancario. Cumplimos con estándares PCI-DSS Nivel 1.
+              </p>
+              <div className="flex items-center gap-2.5 pt-2">
+                <div className="px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 font-bold font-mono text-[9px] rounded">
+                  PCI COMPLIANT
+                </div>
+                <div className="px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 font-bold font-mono text-[9px] rounded">
+                  SSL SECURED
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div className="border-t border-slate-900 pt-8 mt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500">
+            <p>&copy; {new Date().getFullYear()} Esperanza Activa. Todos los derechos reservados.</p>
+            <div className="flex gap-4 mt-4 sm:mt-0">
+              <a href="#" className="hover:text-white">Política de Privacidad</a>
+              <span>•</span>
+              <a href="#" className="hover:text-white">Términos del Donante</a>
+              <span>•</span>
+              <a href="#" className="hover:text-white">Transparencia Gubernamental</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
