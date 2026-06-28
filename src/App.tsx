@@ -24,7 +24,8 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
-  Share2
+  Share2,
+  Coins
 } from 'lucide-react';
 
 // Interfaces para los datos de la aplicación
@@ -59,19 +60,40 @@ interface FAQItem {
 //    se mostrará un elegante código QR vectorizado interactivo de prueba.
 export const QR_CONFIG = {
   paypal: {
-    qrImageUrl: "", // Carga aquí la URL de tu imagen de QR PayPal
-    accountEmail: "donaciones@esperanzaactiva.org",
+    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\paypal.jpeg", // Carga aquí la URL de tu imagen de QR PayPal
+
     recipientName: "Esperanza Activa Foundation (Emergencia Terremoto)"
   },
   nequi: {
-    qrImageUrl: "", // Carga aquí la URL de tu imagen de QR Nequi
-    phoneNumber: "+57 312 456 7890",
+    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\nequi.jpeg", // Carga aquí la URL de tu imagen de QR Nequi
+    phoneNumber: "00926670000",
     accountName: "Esperanza Activa Colombia (Ayuda Humanitaria Sismo)"
   },
   breb: {
-    qrImageUrl: "", // Carga aquí la URL de tu imagen de QR Bre-B
-    aliasKey: "donaciones.venezuela@breb.com",
-    keyType: "E-mail Corporativo Autorizado"
+    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\Breb.jpeg", // Carga aquí la URL de tu imagen de QR Bre-B
+    aliasKey: "00926670000",
+    keyType: "Esperanza Activa Colombia (Ayuda Humanitaria Sismo)"
+  }
+};
+
+// =========================================================================
+// 🪙 CONFIGURACIÓN GLOBAL DE BILLETERAS DE CRIPTOMONEDAS (USDT, BTC, ETH)
+// =========================================================================
+export const CRYPTO_QR_CONFIG = {
+  usdt: {
+    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\USDT.jpeg", // Carga aquí el QR de tu billetera USDT (TRC-20 recomendado)
+    address: "TKp6WVa6hoB3wY9hFYrLxAP6N1gkXsGH",
+    network: "TRON (TRC-20)"
+  },
+  btc: {
+    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\BTC.jpeg", // Carga aquí el QR de tu billetera Bitcoin
+    address: "N/A",
+    network: "Bitcoin"
+  },
+  eth: {
+    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\LTC.jpeg", // Carga aquí el QR de tu billetera Ethereum
+    address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+    network: "Litecoin (ERC-20)"
   }
 };
 
@@ -87,6 +109,7 @@ export default function App() {
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [wantsReports, setWantsReports] = useState<boolean>(true);
   const [qrTab, setQrTab] = useState<'paypal' | 'nequi' | 'breb'>('paypal');
+  const [cryptoTab, setCryptoTab] = useState<'usdt' | 'btc' | 'eth'>('usdt');
 
   // Estado del Formulario de Donación/Pago
   const [personalData, setPersonalData] = useState({
@@ -94,7 +117,7 @@ export default function App() {
     lastName: '',
     email: '',
     phone: '',
-    paymentMethod: 'card' as 'card' | 'qrexpress',
+    paymentMethod: 'card' as 'card' | 'qrexpress' | 'crypto',
     cardHolder: '',
     cardNumber: '',
     cardExpiry: '',
@@ -187,7 +210,7 @@ export default function App() {
       role: "Pediatra de Emergencia y Rescate",
       location: "San Cristóbal, Táchira",
       text: "La rapidez de respuesta ante un sismo define vidas. Gracias al fondo de emergencia, hemos logrado distribuir más de 300 kits de trauma y atender a niños heridos por desprendimiento de paredes. Tu donación llega en horas directas al lugar de los hechos.",
-      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400",
+      image: "/image/medico.jpg",
       badge: "Equipo Médico"
     },
     {
@@ -195,7 +218,7 @@ export default function App() {
       role: "Madre de Familia Damnificada",
       location: "Zonas afectadas, Venezuela",
       text: "La tierra rugió y las paredes de nuestro cuarto se vinieron abajo. Nos quedamos en la calle solo con lo puesto. Esa misma noche la brigada de Esperanza Activa nos trajo colchonetas, agua potable y comida para mis niños. Es una luz de fe.",
-      image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400",
+      image: "/image/madre.jpg",
       badge: "Familia Beneficiada"
     },
     {
@@ -203,7 +226,7 @@ export default function App() {
       role: "Coordinador de Logística de Rescate",
       location: "Caracas - Mérida",
       text: "El 92% de los recursos se convierte inmediatamente en compras locales de suministros de socorro (agua, mantas, raciones y medicamentos de trauma) que despachamos en camionetas rústicas para sortear las vías afectadas por derrumbes.",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400",
+      image: "/image/voluntario.jpg",
       badge: "Voluntario"
     }
   ];
@@ -264,9 +287,9 @@ export default function App() {
           setFormErrors('Por favor, completa los datos de tu tarjeta de crédito/débito.');
           return;
         }
-      } else if (personalData.paymentMethod === 'qrexpress') {
+      } else if (personalData.paymentMethod === 'qrexpress' || personalData.paymentMethod === 'crypto') {
         if (!personalData.qrConfirmationChecked) {
-          setFormErrors('Por favor, confirma que escaneaste el código QR y realizaste tu transferencia antes de continuar.');
+          setFormErrors('Por favor, confirma que completaste la transferencia y marcaste la casilla de confirmación antes de continuar.');
           return;
         }
       }
@@ -512,7 +535,7 @@ export default function App() {
                 {/* Fotografía Emotiva de Campo con Caption */}
                 <div className="relative group rounded-2xl overflow-hidden aspect-[16/9] shadow-xl border border-slate-100">
                   <img 
-                    src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1200" 
+                    src="/image/hero.jpg" 
                     alt="Voluntarios entregando carpas y ayuda médica en la zona del sismo" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     referrerPolicy="no-referrer"
@@ -797,35 +820,48 @@ export default function App() {
                             Método de Pago Seguro
                           </h4>
 
-                          {/* Selector de Opción de Pago A o B */}
-                          <div className="grid grid-cols-2 gap-3">
+                          {/* Selector de Opción de Pago A, B o C */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <button
                               type="button"
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: 'card' })}
-                              className={`py-3 px-3 rounded-2xl font-bold text-xs sm:text-sm border transition-all duration-300 flex flex-col items-center gap-1.5 cursor-pointer ${
+                              className={`py-3 px-3 rounded-2xl font-bold text-xs border transition-all duration-300 flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                                 personalData.paymentMethod === 'card'
                                   ? 'border-[#003893] bg-[#003893]/5 text-[#003893] ring-2 ring-[#003893]/10'
                                   : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
                               }`}
                             >
                               <CreditCard className="w-5 h-5" />
-                              <span>Tarjeta de Crédito / Débito</span>
+                              <span className="text-center">Tarjeta de Crédito / Débito</span>
                             </button>
 
                             <button
                               type="button"
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: 'qrexpress' })}
-                              className={`py-3 px-3 rounded-2xl font-bold text-xs sm:text-sm border transition-all duration-300 flex flex-col items-center gap-1.5 cursor-pointer ${
+                              className={`py-3 px-3 rounded-2xl font-bold text-xs border transition-all duration-300 flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                                 personalData.paymentMethod === 'qrexpress'
                                   ? 'border-[#CF142B] bg-[#CF142B]/5 text-[#CF142B] ring-2 ring-[#CF142B]/10'
                                   : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
                               }`}
                             >
-                              <div className="flex gap-1">
-                                <span className="w-2.5 h-2.5 bg-[#F7D117] rounded-full animate-ping" />
+                              <div className="flex gap-1 items-center justify-center">
+                                <span className="w-2 h-2 bg-[#F7D117] rounded-full animate-ping" />
                                 <Globe className="w-5 h-5 text-slate-500" />
                               </div>
-                              <span>Transferencia / QR Express</span>
+                              <span className="text-center">Transferencia / QR Express</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setPersonalData({ ...personalData, paymentMethod: 'crypto' })}
+                              className={`py-3 px-3 rounded-2xl font-bold text-xs border transition-all duration-300 flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                                personalData.paymentMethod === 'crypto'
+                                  ? 'border-emerald-600 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/10'
+                                  : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
+                              }`}
+                            >
+                              <Coins className="w-5 h-5 text-emerald-600" />
+                              <span className="text-center">Billeteras Cripto</span>
                             </button>
                           </div>
 
@@ -1182,6 +1218,298 @@ export default function App() {
                               </div>
                             )}
 
+                            {/* OPCIÓN C: BILLETERAS CRIPTO */}
+                            {personalData.paymentMethod === 'crypto' && (
+                              <div className="space-y-4 animate-fadeIn">
+                                
+                                {/* Sub-Tab Bar de Canales Cripto */}
+                                <div className="flex border-b border-slate-200 pb-1.5 gap-1.5">
+                                  {[
+                                    { id: 'usdt', name: 'USDT (Tether)', activeColor: 'border-[#26A17B] text-[#26A17B]', bgColor: 'hover:bg-teal-50/50' },
+                                    { id: 'btc', name: 'Bitcoin (BTC)', activeColor: 'border-[#F7931A] text-[#F7931A]', bgColor: 'hover:bg-amber-50/50' },
+                                    { id: 'eth', name: 'Ethereum (ETH)', activeColor: 'border-[#627EEA] text-[#627EEA]', bgColor: 'hover:bg-indigo-50/50' }
+                                  ].map((tab) => (
+                                    <button
+                                      key={tab.id}
+                                      type="button"
+                                      onClick={() => setCryptoTab(tab.id as 'usdt' | 'btc' | 'eth')}
+                                      className={`flex-1 pb-2 text-[11px] font-extrabold text-center border-b-2 transition-all duration-300 ${
+                                        cryptoTab === tab.id
+                                          ? tab.activeColor
+                                          : 'border-transparent text-slate-400 hover:text-slate-600 ' + tab.bgColor
+                                      }`}
+                                    >
+                                      {tab.name}
+                                    </button>
+                                  ))}
+                                </div>
+
+                                {/* Contenido Dinámico de cada Sub-Tab Cripto */}
+                                {cryptoTab === 'usdt' && (
+                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
+                                    <div className="sm:col-span-4 flex justify-center">
+                                      <div className="bg-[#26A17B]/10 p-2.5 rounded-2xl border border-teal-200 shadow-sm relative group">
+                                        {CRYPTO_QR_CONFIG.usdt.qrImageUrl ? (
+                                          <img 
+                                            src={CRYPTO_QR_CONFIG.usdt.qrImageUrl} 
+                                            alt="QR USDT" 
+                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            referrerPolicy="no-referrer"
+                                          />
+                                        ) : (
+                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                            {/* Finders */}
+                                            <rect x="0" y="0" width="28" height="28" fill="#26A17B" rx="2" />
+                                            <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="8" width="12" height="12" fill="#50AF95" rx="0.5" />
+
+                                            <rect x="72" y="0" width="28" height="28" fill="#26A17B" rx="2" />
+                                            <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="80" y="8" width="12" height="12" fill="#50AF95" rx="0.5" />
+
+                                            <rect x="0" y="72" width="28" height="28" fill="#26A17B" rx="2" />
+                                            <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="80" width="12" height="12" fill="#50AF95" rx="0.5" />
+
+                                            {/* Pixels */}
+                                            <rect x="36" y="0" width="8" height="8" fill="#50AF95" />
+                                            <rect x="48" y="4" width="4" height="12" fill="#26A17B" />
+                                            <rect x="56" y="0" width="12" height="4" fill="#50AF95" />
+                                            <rect x="36" y="12" width="16" height="12" fill="#26A17B" />
+                                            <rect x="60" y="20" width="8" height="8" fill="#50AF95" />
+                                            <rect x="12" y="36" width="20" height="8" fill="#50AF95" />
+                                            <rect x="36" y="36" width="12" height="16" fill="#26A17B" />
+                                            <rect x="56" y="36" width="8" height="8" fill="#50AF95" />
+                                            <rect x="72" y="44" width="16" height="12" fill="#26A17B" />
+                                            <rect x="0" y="56" width="12" height="12" fill="#50AF95" />
+                                            <rect x="36" y="60" width="16" height="4" fill="#26A17B" />
+                                            <rect x="56" y="52" width="12" height="12" fill="#50AF95" />
+                                            <rect x="76" y="64" width="12" height="4" fill="#26A17B" />
+                                            <rect x="40" y="72" width="16" height="16" fill="#50AF95" />
+                                            <rect x="64" y="80" width="8" height="8" fill="#26A17B" />
+                                            <rect x="80" y="76" width="16" height="16" fill="#50AF95" />
+
+                                            {/* Mini Logo */}
+                                            <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
+                                            <text x="44" y="54" fontSize="12" fontWeight="bold" fill="#26A17B">T</text>
+                                          </svg>
+                                        )}
+                                        <div className="absolute inset-0 bg-[#26A17B]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                          <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Billetera USDT</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-8 space-y-2">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-extrabold text-[#26A17B] text-sm tracking-tight">USDT (Tether) <span className="px-1.5 py-0.5 rounded bg-[#26A17B]/10 text-[#26A17B] text-[9px] font-extrabold uppercase tracking-widest ml-1">{CRYPTO_QR_CONFIG.usdt.network}</span></span>
+                                      </div>
+                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                        Envía tu donación usando USDT (moneda estable equivalente a USD) para una transferencia instantánea libre de comisiones internacionales bancarias.
+                                      </p>
+                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-slate-400">Dirección USDT:</span>
+                                          <span className="font-mono font-bold text-slate-800 truncate max-w-[150px] sm:max-w-none" title={CRYPTO_QR_CONFIG.usdt.address}>{CRYPTO_QR_CONFIG.usdt.address}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                                          <span className="text-slate-400">Red requerida:</span>
+                                          <span className="font-semibold text-slate-700">{CRYPTO_QR_CONFIG.usdt.network}</span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(CRYPTO_QR_CONFIG.usdt.address, 'usdt')}
+                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                      >
+                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'usdt' ? 'scale-110' : 'scale-0'}`} />
+                                        <span>{copiedText === 'usdt' ? '¡Dirección Copiada!' : 'Copiar Dirección'}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {cryptoTab === 'btc' && (
+                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
+                                    <div className="sm:col-span-4 flex justify-center">
+                                      <div className="bg-[#F7931A]/10 p-2.5 rounded-2xl border border-amber-200 shadow-sm relative group">
+                                        {CRYPTO_QR_CONFIG.btc.qrImageUrl ? (
+                                          <img 
+                                            src={CRYPTO_QR_CONFIG.btc.qrImageUrl} 
+                                            alt="QR BTC" 
+                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            referrerPolicy="no-referrer"
+                                          />
+                                        ) : (
+                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                            {/* Finders */}
+                                            <rect x="0" y="0" width="28" height="28" fill="#F7931A" rx="2" />
+                                            <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="8" width="12" height="12" fill="#D37E15" rx="0.5" />
+
+                                            <rect x="72" y="0" width="28" height="28" fill="#F7931A" rx="2" />
+                                            <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="80" y="8" width="12" height="12" fill="#D37E15" rx="0.5" />
+
+                                            <rect x="0" y="72" width="28" height="28" fill="#F7931A" rx="2" />
+                                            <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="80" width="12" height="12" fill="#D37E15" rx="0.5" />
+
+                                            {/* Pixels */}
+                                            <rect x="36" y="0" width="8" height="8" fill="#D37E15" />
+                                            <rect x="48" y="4" width="4" height="12" fill="#F7931A" />
+                                            <rect x="56" y="0" width="12" height="4" fill="#D37E15" />
+                                            <rect x="36" y="12" width="16" height="12" fill="#F7931A" />
+                                            <rect x="60" y="20" width="8" height="8" fill="#D37E15" />
+                                            <rect x="12" y="36" width="20" height="8" fill="#D37E15" />
+                                            <rect x="36" y="36" width="12" height="16" fill="#F7931A" />
+                                            <rect x="56" y="36" width="8" height="8" fill="#D37E15" />
+                                            <rect x="72" y="44" width="16" height="12" fill="#F7931A" />
+                                            <rect x="0" y="56" width="12" height="12" fill="#D37E15" />
+                                            <rect x="36" y="60" width="16" height="4" fill="#F7931A" />
+                                            <rect x="56" y="52" width="12" height="12" fill="#D37E15" />
+                                            <rect x="76" y="64" width="12" height="4" fill="#F7931A" />
+                                            <rect x="40" y="72" width="16" height="16" fill="#D37E15" />
+                                            <rect x="64" y="80" width="8" height="8" fill="#F7931A" />
+                                            <rect x="80" y="76" width="16" height="16" fill="#D37E15" />
+
+                                            {/* Mini Logo */}
+                                            <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
+                                            <text x="45" y="54" fontSize="11" fontWeight="extrabold" fill="#F7931A">₿</text>
+                                          </svg>
+                                        )}
+                                        <div className="absolute inset-0 bg-[#F7931A]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                          <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Billetera Bitcoin</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-8 space-y-2">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-extrabold text-[#F7931A] text-sm tracking-tight">Bitcoin (BTC) <span className="px-1.5 py-0.5 rounded bg-[#F7931A]/10 text-[#F7931A] text-[9px] font-extrabold uppercase tracking-widest ml-1">{CRYPTO_QR_CONFIG.btc.network}</span></span>
+                                      </div>
+                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                        Envía tu aporte humanitario en Bitcoin directamente a la dirección de reserva oficial para insumos médicos de emergencia de la fundación.
+                                      </p>
+                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-slate-400">Dirección BTC:</span>
+                                          <span className="font-mono font-bold text-slate-800 truncate max-w-[150px] sm:max-w-none" title={CRYPTO_QR_CONFIG.btc.address}>{CRYPTO_QR_CONFIG.btc.address}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                                          <span className="text-slate-400">Red requerida:</span>
+                                          <span className="font-semibold text-slate-700">{CRYPTO_QR_CONFIG.btc.network}</span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(CRYPTO_QR_CONFIG.btc.address, 'btc')}
+                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                      >
+                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'btc' ? 'scale-110' : 'scale-0'}`} />
+                                        <span>{copiedText === 'btc' ? '¡Dirección Copiada!' : 'Copiar Dirección'}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {cryptoTab === 'eth' && (
+                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
+                                    <div className="sm:col-span-4 flex justify-center">
+                                      <div className="bg-[#627EEA]/10 p-2.5 rounded-2xl border border-indigo-200 shadow-sm relative group">
+                                        {CRYPTO_QR_CONFIG.eth.qrImageUrl ? (
+                                          <img 
+                                            src={CRYPTO_QR_CONFIG.eth.qrImageUrl} 
+                                            alt="QR ETH" 
+                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            referrerPolicy="no-referrer"
+                                          />
+                                        ) : (
+                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                            {/* Finders */}
+                                            <rect x="0" y="0" width="28" height="28" fill="#627EEA" rx="2" />
+                                            <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="8" width="12" height="12" fill="#4862D1" rx="0.5" />
+
+                                            <rect x="72" y="0" width="28" height="28" fill="#627EEA" rx="2" />
+                                            <rect x="76" y="4" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="80" y="8" width="12" height="12" fill="#4862D1" rx="0.5" />
+
+                                            <rect x="0" y="72" width="28" height="28" fill="#627EEA" rx="2" />
+                                            <rect x="4" y="76" width="20" height="20" fill="white" rx="1" />
+                                            <rect x="8" y="80" width="12" height="12" fill="#4862D1" rx="0.5" />
+
+                                            {/* Pixels */}
+                                            <rect x="36" y="0" width="8" height="8" fill="#4862D1" />
+                                            <rect x="48" y="4" width="4" height="12" fill="#627EEA" />
+                                            <rect x="56" y="0" width="12" height="4" fill="#4862D1" />
+                                            <rect x="36" y="12" width="16" height="12" fill="#627EEA" />
+                                            <rect x="60" y="20" width="8" height="8" fill="#4862D1" />
+                                            <rect x="12" y="36" width="20" height="8" fill="#627EEA" />
+                                            <rect x="36" y="36" width="12" height="16" fill="#4862D1" />
+                                            <rect x="56" y="36" width="8" height="8" fill="#4862D1" />
+                                            <rect x="72" y="44" width="16" height="12" fill="#627EEA" />
+                                            <rect x="0" y="56" width="12" height="12" fill="#4862D1" />
+                                            <rect x="36" y="60" width="16" height="4" fill="#627EEA" />
+                                            <rect x="56" y="52" width="12" height="12" fill="#4862D1" />
+                                            <rect x="76" y="64" width="12" height="4" fill="#627EEA" />
+                                            <rect x="40" y="72" width="16" height="16" fill="#4862D1" />
+                                            <rect x="64" y="80" width="8" height="8" fill="#627EEA" />
+                                            <rect x="80" y="76" width="16" height="16" fill="#4862D1" />
+
+                                            {/* Mini Logo */}
+                                            <rect x="42" y="42" width="16" height="16" fill="white" rx="4" />
+                                            <polygon points="50,44 55,49 50,54 45,49" fill="#627EEA" />
+                                          </svg>
+                                        )}
+                                        <div className="absolute inset-0 bg-[#627EEA]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                          <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Billetera Ethereum</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-8 space-y-2">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-extrabold text-[#627EEA] text-sm tracking-tight">Ethereum (ETH) <span className="px-1.5 py-0.5 rounded bg-[#627EEA]/10 text-[#627EEA] text-[9px] font-extrabold uppercase tracking-widest ml-1">{CRYPTO_QR_CONFIG.eth.network}</span></span>
+                                      </div>
+                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                        Envía tu contribución utilizando Ether o cualquier token ERC-20 estable compatible a la dirección oficial de logística.
+                                      </p>
+                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-slate-400">Dirección ETH:</span>
+                                          <span className="font-mono font-bold text-slate-800 truncate max-w-[150px] sm:max-w-none" title={CRYPTO_QR_CONFIG.eth.address}>{CRYPTO_QR_CONFIG.eth.address}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                                          <span className="text-slate-400">Red requerida:</span>
+                                          <span className="font-semibold text-slate-700">{CRYPTO_QR_CONFIG.eth.network}</span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(CRYPTO_QR_CONFIG.eth.address, 'eth')}
+                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                      >
+                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'eth' ? 'scale-110' : 'scale-0'}`} />
+                                        <span>{copiedText === 'eth' ? '¡Dirección Copiada!' : 'Copiar Dirección'}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="border-t border-slate-200 pt-3 flex flex-col space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Confirmación de Operación</span>
+                                  <label className="flex items-start gap-2.5 text-xs text-slate-600 font-medium cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={personalData.qrConfirmationChecked}
+                                      onChange={(e) => setPersonalData({...personalData, qrConfirmationChecked: e.target.checked})}
+                                      className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                                    />
+                                    <span>Ya he escaneado la dirección de billetera y completado la transacción por el monto equivalente a <strong>${activeAmount} USD</strong>.</span>
+                                  </label>
+                                </div>
+                                
+                              </div>
+                            )}
+
                           </div>
 
                           {/* Garantía de Seguridad */}
@@ -1319,8 +1647,12 @@ export default function App() {
                             <div className="space-y-1 text-[11px] text-slate-600 font-medium">
                               <div className="flex justify-between">
                                 <span className="text-slate-400">Canal de Pago:</span>
-                                <span className="text-slate-900 font-bold capitalize">
-                                  {personalData.paymentMethod === 'card' ? 'Tarjeta' : 'QR Express'}
+                                <span className="text-slate-900 font-bold capitalize text-right">
+                                  {personalData.paymentMethod === 'card' 
+                                    ? 'Tarjeta' 
+                                    : personalData.paymentMethod === 'qrexpress' 
+                                    ? 'QR Express' 
+                                    : 'Criptomoneda'}
                                 </span>
                               </div>
                               <div className="flex justify-between">
