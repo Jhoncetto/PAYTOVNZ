@@ -25,7 +25,9 @@ import {
   ChevronDown,
   ChevronUp,
   Share2,
-  Coins
+  Coins,
+  AlertTriangle,
+  Building
 } from 'lucide-react';
 
 // Interfaces para los datos de la aplicación
@@ -60,41 +62,50 @@ interface FAQItem {
 //    se mostrará un elegante código QR vectorizado interactivo de prueba.
 export const QR_CONFIG = {
   paypal: {
-    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\paypal.jpeg", // Carga aquí la URL de tu imagen de QR PayPal
-
-    recipientName: "Esperanza Activa Foundation (Emergencia Terremoto)"
+    qrImageUrl: "./image/paypal_qr.jpg", // Carga aquí la URL de tu imagen de QR PayPal
+    accountEmail: "donaciones@esperanzaactiva.org",
+    recipientName: "Esperanza Active Foundation (Emergencia Terremoto)"
   },
   nequi: {
-    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\nequi.jpeg", // Carga aquí la URL de tu imagen de QR Nequi
-    phoneNumber: "00926670000",
+    qrImageUrl: "./image/nequi_qr.jpg", // Carga aquí la URL de tu imagen de QR Nequi
+    phoneNumber: "+57 312 456 7890",
     accountName: "Esperanza Activa Colombia (Ayuda Humanitaria Sismo)"
   },
   breb: {
-    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\Breb.jpeg", // Carga aquí la URL de tu imagen de QR Bre-B
-    aliasKey: "00926670000",
-    keyType: "Esperanza Activa Colombia (Ayuda Humanitaria Sismo)"
+    qrImageUrl: "./image/breb_qr.jpg", // Carga aquí la URL de tu imagen de QR Bre-B
+    aliasKey: "0092667000",
+    keyType: "Jose Moreno - Donaciones Venezuela Cruz Verde"
   }
 };
 
 // =========================================================================
-// 🪙 CONFIGURACIÓN GLOBAL DE BILLETERAS DE CRIPTOMONEDAS (USDT, BTC, ETH)
+// 🪙 CONFIGURACIÓN GLOBAL DE BILLETERAS DE CRIPTOMONEDAS (USDT, BTC, LTC)
 // =========================================================================
 export const CRYPTO_QR_CONFIG = {
   usdt: {
-    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\USDT.jpeg", // Carga aquí el QR de tu billetera USDT (TRC-20 recomendado)
-    address: "TKp6WVa6hoB3wY9hFYrLxAP6N1gkXsGH",
+    qrImageUrl: "./image/usdt_qr.jpg", // Carga aquí el QR de tu billetera USDT (TRC-20 recomendado)
+    address: "TYC2Nf1K4G92vYgP6kH9mN2F8sA5B6vE1D",
     network: "TRON (TRC-20)"
   },
   btc: {
-    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\BTC.jpeg", // Carga aquí el QR de tu billetera Bitcoin
-    address: "N/A",
-    network: "Bitcoin"
+    qrImageUrl: "./image/btc_qr.jpg", // Carga aquí el QR de tu billetera Bitcoin
+    address: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    network: "Bitcoin Mainnet"
   },
-  eth: {
-    qrImageUrl: "\ayuda-humanitaria-venezuela\public\image\LTC.jpeg", // Carga aquí el QR de tu billetera Ethereum
-    address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-    network: "Litecoin (ERC-20)"
+  ltc: {
+    qrImageUrl: "./image/ltc_qr.jpg", // Carga aquí el QR de tu billetera Litecoin
+    address: "MHChUeebvt8th8ZpSZ3gocfwgBuNsA6Gw7",
+    network: "Litecoin Mainnet"
   }
+};
+
+// =========================================================================
+// 🏦 CONFIGURACIÓN GLOBAL DE CUENTA CORRIENTE BANCARIA (TRANSFERENCIA DIRECTA)
+// =========================================================================
+export const BANK_ACCOUNT_CONFIG = {
+  bankName: "LEADBANK",
+  accountType: "CORRIENTE",
+  accountNumber: "215896071516"
 };
 
 export default function App() {
@@ -109,7 +120,7 @@ export default function App() {
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [wantsReports, setWantsReports] = useState<boolean>(true);
   const [qrTab, setQrTab] = useState<'paypal' | 'nequi' | 'breb'>('paypal');
-  const [cryptoTab, setCryptoTab] = useState<'usdt' | 'btc' | 'eth'>('usdt');
+  const [cryptoTab, setCryptoTab] = useState<'usdt' | 'btc' | 'ltc'>('usdt');
 
   // Estado del Formulario de Donación/Pago
   const [personalData, setPersonalData] = useState({
@@ -210,7 +221,7 @@ export default function App() {
       role: "Pediatra de Emergencia y Rescate",
       location: "San Cristóbal, Táchira",
       text: "La rapidez de respuesta ante un sismo define vidas. Gracias al fondo de emergencia, hemos logrado distribuir más de 300 kits de trauma y atender a niños heridos por desprendimiento de paredes. Tu donación llega en horas directas al lugar de los hechos.",
-      image: "/image/medico.jpg",
+      image: "./image/medico.jpg",
       badge: "Equipo Médico"
     },
     {
@@ -218,7 +229,7 @@ export default function App() {
       role: "Madre de Familia Damnificada",
       location: "Zonas afectadas, Venezuela",
       text: "La tierra rugió y las paredes de nuestro cuarto se vinieron abajo. Nos quedamos en la calle solo con lo puesto. Esa misma noche la brigada de Esperanza Activa nos trajo colchonetas, agua potable y comida para mis niños. Es una luz de fe.",
-      image: "/image/madre.jpg",
+      image: "./image/madre.jpg",
       badge: "Familia Beneficiada"
     },
     {
@@ -226,7 +237,7 @@ export default function App() {
       role: "Coordinador de Logística de Rescate",
       location: "Caracas - Mérida",
       text: "El 92% de los recursos se convierte inmediatamente en compras locales de suministros de socorro (agua, mantas, raciones y medicamentos de trauma) que despachamos en camionetas rústicas para sortear las vías afectadas por derrumbes.",
-      image: "/image/voluntario.jpg",
+      image: "./image/voluntario.jpg",
       badge: "Voluntario"
     }
   ];
@@ -281,17 +292,10 @@ export default function App() {
       }
       setCurrentStep(3);
     } else if (currentStep === 3) {
-      // Validaciones basadas en el método de pago seleccionado
-      if (personalData.paymentMethod === 'card') {
-        if (!personalData.cardNumber || !personalData.cardExpiry || !personalData.cardCvv) {
-          setFormErrors('Por favor, completa los datos de tu tarjeta de crédito/débito.');
-          return;
-        }
-      } else if (personalData.paymentMethod === 'qrexpress' || personalData.paymentMethod === 'crypto') {
-        if (!personalData.qrConfirmationChecked) {
-          setFormErrors('Por favor, confirma que completaste la transferencia y marcaste la casilla de confirmación antes de continuar.');
-          return;
-        }
+      // Todos los métodos de pago (Cuenta Corriente, QR Express, Cripto) requieren confirmación de transferencia
+      if (!personalData.qrConfirmationChecked) {
+        setFormErrors('Por favor, confirma que completaste la transferencia y marcaste la casilla de confirmación antes de continuar.');
+        return;
       }
       // Simulación exitosa
       setCurrentStep(4);
@@ -535,7 +539,7 @@ export default function App() {
                 {/* Fotografía Emotiva de Campo con Caption */}
                 <div className="relative group rounded-2xl overflow-hidden aspect-[16/9] shadow-xl border border-slate-100">
                   <img 
-                    src="/image/hero.jpg" 
+                    src="./image/hero.jpg" 
                     alt="Voluntarios entregando carpas y ayuda médica en la zona del sismo" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     referrerPolicy="no-referrer"
@@ -825,14 +829,17 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: 'card' })}
-                              className={`py-3 px-3 rounded-2xl font-bold text-xs border transition-all duration-300 flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                              className={`py-3 px-3 rounded-2xl font-bold text-xs border transition-all duration-300 flex flex-col items-center justify-center gap-1.5 cursor-pointer relative overflow-hidden ${
                                 personalData.paymentMethod === 'card'
                                   ? 'border-[#003893] bg-[#003893]/5 text-[#003893] ring-2 ring-[#003893]/10'
                                   : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
                               }`}
                             >
-                              <CreditCard className="w-5 h-5" />
-                              <span className="text-center">Tarjeta de Crédito / Débito</span>
+                              <div className="absolute -top-1 -right-1 bg-amber-500 text-white font-black px-1.5 py-0.5 rounded-bl-md text-[8px] uppercase tracking-widest scale-90 origin-top-right animate-pulse">
+                                Tarjeta Off
+                              </div>
+                              <Building className="w-5 h-5 text-[#003893]" />
+                              <span className="text-center">Cuenta Corriente / Transf.</span>
                             </button>
 
                             <button
@@ -868,64 +875,59 @@ export default function App() {
                           {/* Contenedor del Formulario o QR */}
                           <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100 min-h-[220px] transition-all duration-300">
                             
-                            {/* OPCIÓN A: PAGO CON TARJETA DE CRÉDITO/DÉBITO */}
+                            {/* OPCIÓN A: CUENTA CORRIENTE BANCARIA (TRANSFERENCIA DIRECTA) */}
                             {personalData.paymentMethod === 'card' && (
-                              <div className="space-y-3 animate-fadeIn">
-                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detalles de la Tarjeta</span>
-                                <div>
-                                  <input
-                                    type="text"
-                                    required
-                                    value={personalData.cardHolder}
-                                    onChange={(e) => setPersonalData({...personalData, cardHolder: e.target.value})}
-                                    placeholder="Nombre del Titular (Ej. Juan Pérez)"
-                                    className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#003893]/20 focus:border-[#003893]"
-                                  />
+                              <div className="space-y-4 animate-fadeIn">
+                                {/* Alerta de Mantenimiento de Tarjeta */}
+                                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-800">
+                                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                  <div className="space-y-0.5">
+                                    <span className="font-extrabold text-amber-900 block">Procesador de Tarjetas en Mantenimiento Técnico</span>
+                                    <p className="text-amber-800 leading-normal text-[11px]">
+                                      Nuestra pasarela directa de cobro automático con tarjeta se encuentra en mantenimiento temporal para actualización de servidores de seguridad interbancaria. Puedes transferir directamente a nuestra **Cuenta Corriente** autorizada.
+                                    </p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <input
-                                    type="text"
-                                    required
-                                    value={personalData.cardNumber}
-                                    onChange={(e) => {
-                                      const val = e.target.value.replace(/\D/g, '').slice(0, 16);
-                                      const matches = val.match(/\d{4,16}/g);
-                                      const match = (matches && matches[0]) || '';
-                                      const parts = [];
-                                      for (let i = 0, len = match.length; i < len; i += 4) {
-                                        parts.push(match.substring(i, i + 4));
-                                      }
-                                      setPersonalData({...personalData, cardNumber: parts.length > 0 ? parts.join(' ') : val});
-                                    }}
-                                    placeholder="Número de Tarjeta (4111 2222 3333 4444)"
-                                    className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#003893]/20 focus:border-[#003893]"
-                                  />
+
+                                <div className="space-y-2">
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Datos de Cuenta Corriente para Transferencia</span>
+                                  
+                                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden text-xs divide-y divide-slate-100">
+                                    {[
+                                      { label: 'Banco', value: BANK_ACCOUNT_CONFIG.bankName, copyKey: 'bank_name' },
+                                      { label: 'Tipo de Cuenta', value: BANK_ACCOUNT_CONFIG.accountType, copyKey: 'bank_type' },
+                                      { label: 'Número de Cuenta', value: BANK_ACCOUNT_CONFIG.accountNumber, copyKey: 'bank_number', isMono: true },
+                                    ].map((item) => (
+                                      <div key={item.copyKey} className="flex justify-between items-center p-2.5 hover:bg-slate-50 transition-colors">
+                                        <div className="flex flex-col">
+                                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{item.label}</span>
+                                          <span className={`font-semibold text-slate-800 ${item.isMono ? 'font-mono' : ''}`}>{item.value}</span>
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => copyToClipboard(item.value, item.copyKey)}
+                                          className="py-1 px-2 rounded-lg border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-[10px] font-bold text-slate-600 flex items-center gap-1 transition-all cursor-pointer shadow-sm shrink-0"
+                                        >
+                                          <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === item.copyKey ? 'scale-110' : 'scale-0'}`} />
+                                          <span>{copiedText === item.copyKey ? '¡Copiado!' : 'Copiar'}</span>
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                  <input
-                                    type="text"
-                                    required
-                                    maxLength={5}
-                                    value={personalData.cardExpiry}
-                                    onChange={(e) => {
-                                      let val = e.target.value.replace(/\D/g, '');
-                                      if (val.length > 2) {
-                                        val = val.slice(0, 2) + '/' + val.slice(2, 4);
-                                      }
-                                      setPersonalData({...personalData, cardExpiry: val});
-                                    }}
-                                    placeholder="MM/AA"
-                                    className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs text-center focus:outline-none focus:ring-2 focus:ring-[#003893]/20 focus:border-[#003893]"
-                                  />
-                                  <input
-                                    type="password"
-                                    required
-                                    maxLength={4}
-                                    value={personalData.cardCvv}
-                                    onChange={(e) => setPersonalData({...personalData, cardCvv: e.target.value.replace(/\D/g, '')})}
-                                    placeholder="CVV / CVC"
-                                    className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs text-center focus:outline-none focus:ring-2 focus:ring-[#003893]/20 focus:border-[#003893]"
-                                  />
+
+                                {/* Confirmación de Transferencia */}
+                                <div className="border-t border-slate-200 pt-3 flex flex-col space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Confirmación de Operación</span>
+                                  <label className="flex items-start gap-2.5 text-xs text-slate-600 font-medium cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={personalData.qrConfirmationChecked}
+                                      onChange={(e) => setPersonalData({...personalData, qrConfirmationChecked: e.target.checked})}
+                                      className="mt-0.5 rounded border-slate-300 text-[#003893] focus:ring-[#003893] w-4 h-4"
+                                    />
+                                    <span>Ya he realizado la transferencia bancaria nacional/internacional por el monto equivalente a <strong>${activeAmount} USD</strong> a la cuenta corriente especificada.</span>
+                                  </label>
                                 </div>
                               </div>
                             )}
@@ -958,18 +960,18 @@ export default function App() {
 
                                 {/* Contenido Dinámico de cada Sub-Tab QR */}
                                 {qrTab === 'paypal' && (
-                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
-                                    <div className="sm:col-span-4 flex justify-center">
-                                      <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-sm relative group">
+                                  <div className="flex flex-col items-center gap-5 animate-fadeIn text-xs text-center">
+                                    <div className="w-full flex justify-center">
+                                      <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-lg relative group w-full max-w-[320px] mx-auto">
                                         {QR_CONFIG.paypal.qrImageUrl ? (
                                           <img 
                                             src={QR_CONFIG.paypal.qrImageUrl} 
                                             alt="QR PayPal" 
-                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            className="w-full h-auto object-contain rounded-2xl mx-auto block hover:scale-105 transition-transform duration-300 shadow-sm"
                                             referrerPolicy="no-referrer"
                                           />
                                         ) : (
-                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                          <svg width="100%" height="auto" viewBox="0 0 100 100" className="w-full h-auto text-slate-900 mx-auto max-w-[260px] block">
                                             {/* Finders */}
                                             <rect x="0" y="0" width="28" height="28" fill="#003087" rx="2" />
                                             <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
@@ -1003,19 +1005,19 @@ export default function App() {
                                             <circle cx="50" cy="50" r="5" fill="#003087" />
                                           </svg>
                                         )}
-                                        <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                        <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-3xl">
                                           <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Campaña PayPal</span>
                                         </div>
                                       </div>
                                     </div>
-                                    <div className="sm:col-span-8 space-y-2">
-                                      <div className="flex items-center gap-2">
+                                    <div className="w-full max-w-[340px] space-y-3">
+                                      <div className="flex items-center justify-center gap-2">
                                         <span className="font-extrabold text-[#003087] italic text-sm tracking-tighter">Pay<span className="text-[#0079C1]">Pal</span> <span className="text-xs font-bold not-italic text-slate-500 uppercase tracking-wider ml-1">Internacional</span></span>
                                       </div>
-                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                      <p className="text-[11px] text-slate-500 leading-normal px-2">
                                         Escanea desde tu app PayPal o usa la dirección de correo oficial para procesar tu donación internacional directamente para la emergencia del sismo.
                                       </p>
-                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                      <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1 text-left">
                                         <div className="flex justify-between items-center">
                                           <span className="text-slate-400">Correo Cuenta:</span>
                                           <span className="font-mono font-bold text-slate-800">{QR_CONFIG.paypal.accountEmail}</span>
@@ -1028,9 +1030,9 @@ export default function App() {
                                       <button
                                         type="button"
                                         onClick={() => copyToClipboard(QR_CONFIG.paypal.accountEmail, 'paypal')}
-                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                        className="py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer w-full"
                                       >
-                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'paypal' ? 'scale-110' : 'scale-0'}`} />
+                                        <Check className={`w-3.5 h-3.5 text-emerald-600 transition-transform ${copiedText === 'paypal' ? 'scale-110' : 'scale-0'}`} />
                                         <span>{copiedText === 'paypal' ? '¡Correo Copiado!' : 'Copiar Correo PayPal'}</span>
                                       </button>
                                     </div>
@@ -1038,18 +1040,18 @@ export default function App() {
                                 )}
 
                                 {qrTab === 'nequi' && (
-                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
-                                    <div className="sm:col-span-4 flex justify-center">
-                                      <div className="bg-[#3F1965]/10 p-2.5 rounded-2xl border border-purple-200 shadow-sm relative group">
+                                  <div className="flex flex-col items-center gap-5 animate-fadeIn text-xs text-center">
+                                    <div className="w-full flex justify-center">
+                                      <div className="bg-white p-4 rounded-3xl border border-purple-200 shadow-lg relative group w-full max-w-[320px] mx-auto">
                                         {QR_CONFIG.nequi.qrImageUrl ? (
                                           <img 
                                             src={QR_CONFIG.nequi.qrImageUrl} 
                                             alt="QR Nequi" 
-                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            className="w-full h-auto object-contain rounded-2xl mx-auto block hover:scale-105 transition-transform duration-300 shadow-sm"
                                             referrerPolicy="no-referrer"
                                           />
                                         ) : (
-                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                          <svg width="100%" height="auto" viewBox="0 0 100 100" className="w-full h-auto text-slate-900 mx-auto max-w-[260px] block">
                                             {/* Finders */}
                                             <rect x="0" y="0" width="28" height="28" fill="#3F1965" rx="2" />
                                             <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
@@ -1085,19 +1087,19 @@ export default function App() {
                                             <rect x="45" y="45" width="10" height="10" fill="#3F1965" rx="2" />
                                           </svg>
                                         )}
-                                        <div className="absolute inset-0 bg-[#3F1965]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                        <div className="absolute inset-0 bg-[#3F1965]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-3xl">
                                           <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Campaña Nequi</span>
                                         </div>
                                       </div>
                                     </div>
-                                    <div className="sm:col-span-8 space-y-2">
-                                      <div className="flex items-center gap-1.5">
+                                    <div className="w-full max-w-[340px] space-y-3">
+                                      <div className="flex items-center justify-center gap-1.5">
                                         <span className="font-extrabold text-[#3F1965] text-sm tracking-tight">NEQUI <span className="px-1.5 py-0.5 rounded bg-[#FF007F]/10 text-[#FF007F] text-[9px] font-extrabold uppercase tracking-widest ml-1">Fácil & Rápido</span></span>
                                       </div>
-                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                      <p className="text-[11px] text-slate-500 leading-normal px-2">
                                         Escanea desde tu app móvil Nequi para realizar transferencias inmediatas de ayuda humanitaria desde Colombia sin recargos.
                                       </p>
-                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                      <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1 text-left">
                                         <div className="flex justify-between items-center">
                                           <span className="text-slate-400">Celular Nequi:</span>
                                           <span className="font-mono font-bold text-slate-800">{QR_CONFIG.nequi.phoneNumber}</span>
@@ -1110,9 +1112,9 @@ export default function App() {
                                       <button
                                         type="button"
                                         onClick={() => copyToClipboard(QR_CONFIG.nequi.phoneNumber, 'nequi')}
-                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                        className="py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer w-full"
                                       >
-                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'nequi' ? 'scale-110' : 'scale-0'}`} />
+                                        <Check className={`w-3.5 h-3.5 text-emerald-600 transition-transform ${copiedText === 'nequi' ? 'scale-110' : 'scale-0'}`} />
                                         <span>{copiedText === 'nequi' ? '¡Número Copiado!' : 'Copiar Número Celular'}</span>
                                       </button>
                                     </div>
@@ -1120,18 +1122,18 @@ export default function App() {
                                 )}
 
                                 {qrTab === 'breb' && (
-                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
-                                    <div className="sm:col-span-4 flex justify-center">
-                                      <div className="bg-amber-500/10 p-2.5 rounded-2xl border border-yellow-200 shadow-sm relative group">
+                                  <div className="flex flex-col items-center gap-5 animate-fadeIn text-xs text-center">
+                                    <div className="w-full flex justify-center">
+                                      <div className="bg-white p-4 rounded-3xl border border-yellow-300 shadow-lg relative group w-full max-w-[320px] mx-auto">
                                         {QR_CONFIG.breb.qrImageUrl ? (
                                           <img 
                                             src={QR_CONFIG.breb.qrImageUrl} 
                                             alt="QR Bre-B" 
-                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            className="w-full h-auto object-contain rounded-2xl mx-auto block hover:scale-105 transition-transform duration-300 shadow-sm"
                                             referrerPolicy="no-referrer"
                                           />
                                         ) : (
-                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                          <svg width="100%" height="auto" viewBox="0 0 100 100" className="w-full h-auto text-slate-900 mx-auto max-w-[260px] block">
                                             {/* Finders */}
                                             <rect x="0" y="0" width="28" height="28" fill="#F7D117" rx="2" />
                                             <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
@@ -1168,19 +1170,19 @@ export default function App() {
                                             <polygon points="50,44 56,54 44,54" fill="#003893" />
                                           </svg>
                                         )}
-                                        <div className="absolute inset-0 bg-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                        <div className="absolute inset-0 bg-yellow-500/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-3xl">
                                           <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Canal Bre-B</span>
                                         </div>
                                       </div>
                                     </div>
-                                    <div className="sm:col-span-8 space-y-2">
-                                      <div className="flex items-center gap-1.5">
+                                    <div className="w-full max-w-[340px] space-y-3">
+                                      <div className="flex items-center justify-center gap-1.5">
                                         <span className="font-extrabold text-slate-800 text-sm tracking-tight">Bre-B <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-extrabold uppercase ml-1">Pagos Interbancarios</span></span>
                                       </div>
-                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                      <p className="text-[11px] text-slate-500 leading-normal px-2">
                                         Bre-B es el sistema unificado de pagos rápidos del Banco de la República de Colombia. Escanea con la aplicación de tu entidad financiera favorita para donar.
                                       </p>
-                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                      <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1 text-left">
                                         <div className="flex justify-between items-center">
                                           <span className="text-slate-400">Llave / Alias Bre-B:</span>
                                           <span className="font-mono font-bold text-slate-800">{QR_CONFIG.breb.aliasKey}</span>
@@ -1193,9 +1195,9 @@ export default function App() {
                                       <button
                                         type="button"
                                         onClick={() => copyToClipboard(QR_CONFIG.breb.aliasKey, 'breb')}
-                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                        className="py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer w-full"
                                       >
-                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'breb' ? 'scale-110' : 'scale-0'}`} />
+                                        <Check className={`w-3.5 h-3.5 text-emerald-600 transition-transform ${copiedText === 'breb' ? 'scale-110' : 'scale-0'}`} />
                                         <span>{copiedText === 'breb' ? '¡Llave Copiada!' : 'Copiar Llave Bre-B'}</span>
                                       </button>
                                     </div>
@@ -1227,12 +1229,12 @@ export default function App() {
                                   {[
                                     { id: 'usdt', name: 'USDT (Tether)', activeColor: 'border-[#26A17B] text-[#26A17B]', bgColor: 'hover:bg-teal-50/50' },
                                     { id: 'btc', name: 'Bitcoin (BTC)', activeColor: 'border-[#F7931A] text-[#F7931A]', bgColor: 'hover:bg-amber-50/50' },
-                                    { id: 'eth', name: 'Ethereum (ETH)', activeColor: 'border-[#627EEA] text-[#627EEA]', bgColor: 'hover:bg-indigo-50/50' }
+                                    { id: 'ltc', name: 'Litecoin (LTC)', activeColor: 'border-[#345D9D] text-[#345D9D]', bgColor: 'hover:bg-blue-50/50' }
                                   ].map((tab) => (
                                     <button
                                       key={tab.id}
                                       type="button"
-                                      onClick={() => setCryptoTab(tab.id as 'usdt' | 'btc' | 'eth')}
+                                      onClick={() => setCryptoTab(tab.id as 'usdt' | 'btc' | 'ltc')}
                                       className={`flex-1 pb-2 text-[11px] font-extrabold text-center border-b-2 transition-all duration-300 ${
                                         cryptoTab === tab.id
                                           ? tab.activeColor
@@ -1246,18 +1248,18 @@ export default function App() {
 
                                 {/* Contenido Dinámico de cada Sub-Tab Cripto */}
                                 {cryptoTab === 'usdt' && (
-                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
-                                    <div className="sm:col-span-4 flex justify-center">
-                                      <div className="bg-[#26A17B]/10 p-2.5 rounded-2xl border border-teal-200 shadow-sm relative group">
+                                  <div className="flex flex-col items-center gap-5 animate-fadeIn text-xs text-center">
+                                    <div className="w-full flex justify-center">
+                                      <div className="bg-white p-4 rounded-3xl border border-teal-200 shadow-lg relative group w-full max-w-[320px] mx-auto">
                                         {CRYPTO_QR_CONFIG.usdt.qrImageUrl ? (
                                           <img 
                                             src={CRYPTO_QR_CONFIG.usdt.qrImageUrl} 
                                             alt="QR USDT" 
-                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            className="w-full h-auto object-contain rounded-2xl mx-auto block hover:scale-105 transition-transform duration-300 shadow-sm"
                                             referrerPolicy="no-referrer"
                                           />
                                         ) : (
-                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                          <svg width="100%" height="auto" viewBox="0 0 100 100" className="w-full h-auto text-slate-900 mx-auto max-w-[260px] block">
                                             {/* Finders */}
                                             <rect x="0" y="0" width="28" height="28" fill="#26A17B" rx="2" />
                                             <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
@@ -1294,19 +1296,19 @@ export default function App() {
                                             <text x="44" y="54" fontSize="12" fontWeight="bold" fill="#26A17B">T</text>
                                           </svg>
                                         )}
-                                        <div className="absolute inset-0 bg-[#26A17B]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                        <div className="absolute inset-0 bg-[#26A17B]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-3xl">
                                           <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Billetera USDT</span>
                                         </div>
                                       </div>
                                     </div>
-                                    <div className="sm:col-span-8 space-y-2">
-                                      <div className="flex items-center gap-1.5">
+                                    <div className="w-full max-w-[340px] space-y-3">
+                                      <div className="flex items-center justify-center gap-1.5">
                                         <span className="font-extrabold text-[#26A17B] text-sm tracking-tight">USDT (Tether) <span className="px-1.5 py-0.5 rounded bg-[#26A17B]/10 text-[#26A17B] text-[9px] font-extrabold uppercase tracking-widest ml-1">{CRYPTO_QR_CONFIG.usdt.network}</span></span>
                                       </div>
-                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                      <p className="text-[11px] text-slate-500 leading-normal px-2">
                                         Envía tu donación usando USDT (moneda estable equivalente a USD) para una transferencia instantánea libre de comisiones internacionales bancarias.
                                       </p>
-                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                      <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1 text-left">
                                         <div className="flex justify-between items-center">
                                           <span className="text-slate-400">Dirección USDT:</span>
                                           <span className="font-mono font-bold text-slate-800 truncate max-w-[150px] sm:max-w-none" title={CRYPTO_QR_CONFIG.usdt.address}>{CRYPTO_QR_CONFIG.usdt.address}</span>
@@ -1319,9 +1321,9 @@ export default function App() {
                                       <button
                                         type="button"
                                         onClick={() => copyToClipboard(CRYPTO_QR_CONFIG.usdt.address, 'usdt')}
-                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                        className="py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer w-full"
                                       >
-                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'usdt' ? 'scale-110' : 'scale-0'}`} />
+                                        <Check className={`w-3.5 h-3.5 text-emerald-600 transition-transform ${copiedText === 'usdt' ? 'scale-110' : 'scale-0'}`} />
                                         <span>{copiedText === 'usdt' ? '¡Dirección Copiada!' : 'Copiar Dirección'}</span>
                                       </button>
                                     </div>
@@ -1329,18 +1331,18 @@ export default function App() {
                                 )}
 
                                 {cryptoTab === 'btc' && (
-                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
-                                    <div className="sm:col-span-4 flex justify-center">
-                                      <div className="bg-[#F7931A]/10 p-2.5 rounded-2xl border border-amber-200 shadow-sm relative group">
+                                  <div className="flex flex-col items-center gap-5 animate-fadeIn text-xs text-center">
+                                    <div className="w-full flex justify-center">
+                                      <div className="bg-white p-4 rounded-3xl border border-amber-200 shadow-lg relative group w-full max-w-[320px] mx-auto">
                                         {CRYPTO_QR_CONFIG.btc.qrImageUrl ? (
                                           <img 
                                             src={CRYPTO_QR_CONFIG.btc.qrImageUrl} 
                                             alt="QR BTC" 
-                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            className="w-full h-auto object-contain rounded-2xl mx-auto block hover:scale-105 transition-transform duration-300 shadow-sm"
                                             referrerPolicy="no-referrer"
                                           />
                                         ) : (
-                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                          <svg width="100%" height="auto" viewBox="0 0 100 100" className="w-full h-auto text-slate-900 mx-auto max-w-[260px] block">
                                             {/* Finders */}
                                             <rect x="0" y="0" width="28" height="28" fill="#F7931A" rx="2" />
                                             <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
@@ -1377,19 +1379,19 @@ export default function App() {
                                             <text x="45" y="54" fontSize="11" fontWeight="extrabold" fill="#F7931A">₿</text>
                                           </svg>
                                         )}
-                                        <div className="absolute inset-0 bg-[#F7931A]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                        <div className="absolute inset-0 bg-[#F7931A]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-3xl">
                                           <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Billetera Bitcoin</span>
                                         </div>
                                       </div>
                                     </div>
-                                    <div className="sm:col-span-8 space-y-2">
-                                      <div className="flex items-center gap-1.5">
+                                    <div className="w-full max-w-[340px] space-y-3">
+                                      <div className="flex items-center justify-center gap-1.5">
                                         <span className="font-extrabold text-[#F7931A] text-sm tracking-tight">Bitcoin (BTC) <span className="px-1.5 py-0.5 rounded bg-[#F7931A]/10 text-[#F7931A] text-[9px] font-extrabold uppercase tracking-widest ml-1">{CRYPTO_QR_CONFIG.btc.network}</span></span>
                                       </div>
-                                      <p className="text-[11px] text-slate-500 leading-normal">
+                                      <p className="text-[11px] text-slate-500 leading-normal px-2">
                                         Envía tu aporte humanitario en Bitcoin directamente a la dirección de reserva oficial para insumos médicos de emergencia de la fundación.
                                       </p>
-                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                      <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1 text-left">
                                         <div className="flex justify-between items-center">
                                           <span className="text-slate-400">Dirección BTC:</span>
                                           <span className="font-mono font-bold text-slate-800 truncate max-w-[150px] sm:max-w-none" title={CRYPTO_QR_CONFIG.btc.address}>{CRYPTO_QR_CONFIG.btc.address}</span>
@@ -1402,28 +1404,28 @@ export default function App() {
                                       <button
                                         type="button"
                                         onClick={() => copyToClipboard(CRYPTO_QR_CONFIG.btc.address, 'btc')}
-                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                        className="py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer w-full"
                                       >
-                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'btc' ? 'scale-110' : 'scale-0'}`} />
+                                        <Check className={`w-3.5 h-3.5 text-emerald-600 transition-transform ${copiedText === 'btc' ? 'scale-110' : 'scale-0'}`} />
                                         <span>{copiedText === 'btc' ? '¡Dirección Copiada!' : 'Copiar Dirección'}</span>
                                       </button>
                                     </div>
                                   </div>
                                 )}
 
-                                {cryptoTab === 'eth' && (
-                                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center animate-fadeIn text-xs">
-                                    <div className="sm:col-span-4 flex justify-center">
-                                      <div className="bg-[#627EEA]/10 p-2.5 rounded-2xl border border-indigo-200 shadow-sm relative group">
-                                        {CRYPTO_QR_CONFIG.eth.qrImageUrl ? (
+                                {cryptoTab === 'ltc' && (
+                                  <div className="flex flex-col items-center gap-5 animate-fadeIn text-xs text-center">
+                                    <div className="w-full flex justify-center">
+                                      <div className="bg-white p-4 rounded-3xl border border-blue-200 shadow-lg relative group w-full max-w-[320px] mx-auto">
+                                        {CRYPTO_QR_CONFIG.ltc.qrImageUrl ? (
                                           <img 
-                                            src={CRYPTO_QR_CONFIG.eth.qrImageUrl} 
-                                            alt="QR ETH" 
-                                            className="w-[100px] h-[100px] object-contain rounded-lg"
+                                            src={CRYPTO_QR_CONFIG.ltc.qrImageUrl} 
+                                            alt="QR LTC" 
+                                            className="w-full h-auto object-contain rounded-2xl mx-auto block hover:scale-105 transition-transform duration-300 shadow-sm"
                                             referrerPolicy="no-referrer"
                                           />
                                         ) : (
-                                          <svg width="100" height="100" viewBox="0 0 100 100" className="text-slate-900">
+                                          <svg width="100%" height="auto" viewBox="0 0 100 100" className="w-full h-auto text-slate-900 mx-auto max-w-[260px] block">
                                             {/* Finders */}
                                             <rect x="0" y="0" width="28" height="28" fill="#627EEA" rx="2" />
                                             <rect x="4" y="4" width="20" height="20" fill="white" rx="1" />
@@ -1460,35 +1462,35 @@ export default function App() {
                                             <polygon points="50,44 55,49 50,54 45,49" fill="#627EEA" />
                                           </svg>
                                         )}
-                                        <div className="absolute inset-0 bg-[#627EEA]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
-                                          <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Billetera Ethereum</span>
+                                        <div className="absolute inset-0 bg-[#627EEA]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-3xl">
+                                          <span className="bg-white/90 text-[8px] font-bold py-1 px-1.5 rounded shadow text-slate-800">Billetera Litecoin</span>
                                         </div>
                                       </div>
                                     </div>
-                                    <div className="sm:col-span-8 space-y-2">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="font-extrabold text-[#627EEA] text-sm tracking-tight">Ethereum (ETH) <span className="px-1.5 py-0.5 rounded bg-[#627EEA]/10 text-[#627EEA] text-[9px] font-extrabold uppercase tracking-widest ml-1">{CRYPTO_QR_CONFIG.eth.network}</span></span>
+                                    <div className="w-full max-w-[340px] space-y-3">
+                                      <div className="flex items-center justify-center gap-1.5">
+                                        <span className="font-extrabold text-[#345D9D] text-sm tracking-tight">Litecoin (LTC) <span className="px-1.5 py-0.5 rounded bg-[#345D9D]/10 text-[#345D9D] text-[9px] font-extrabold uppercase tracking-widest ml-1">{CRYPTO_QR_CONFIG.ltc.network}</span></span>
                                       </div>
-                                      <p className="text-[11px] text-slate-500 leading-normal">
-                                        Envía tu contribución utilizando Ether o cualquier token ERC-20 estable compatible a la dirección oficial de logística.
+                                      <p className="text-[11px] text-slate-500 leading-normal px-2">
+                                        Envía tu contribución utilizando Litecoin (LTC) a la dirección oficial de logística rápida, con comisiones extremadamente bajas.
                                       </p>
-                                      <div className="p-2 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1">
+                                      <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1 text-left">
                                         <div className="flex justify-between items-center">
-                                          <span className="text-slate-400">Dirección ETH:</span>
-                                          <span className="font-mono font-bold text-slate-800 truncate max-w-[150px] sm:max-w-none" title={CRYPTO_QR_CONFIG.eth.address}>{CRYPTO_QR_CONFIG.eth.address}</span>
+                                          <span className="text-slate-400">Dirección LTC:</span>
+                                          <span className="font-mono font-bold text-slate-800 truncate max-w-[150px] sm:max-w-none" title={CRYPTO_QR_CONFIG.ltc.address}>{CRYPTO_QR_CONFIG.ltc.address}</span>
                                         </div>
                                         <div className="flex justify-between items-center pt-1 border-t border-slate-100">
                                           <span className="text-slate-400">Red requerida:</span>
-                                          <span className="font-semibold text-slate-700">{CRYPTO_QR_CONFIG.eth.network}</span>
+                                          <span className="font-semibold text-slate-700">{CRYPTO_QR_CONFIG.ltc.network}</span>
                                         </div>
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={() => copyToClipboard(CRYPTO_QR_CONFIG.eth.address, 'eth')}
-                                        className="py-1.5 px-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-bold text-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer w-full sm:w-auto"
+                                        onClick={() => copyToClipboard(CRYPTO_QR_CONFIG.ltc.address, 'ltc')}
+                                        className="py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer w-full"
                                       >
-                                        <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === 'eth' ? 'scale-110' : 'scale-0'}`} />
-                                        <span>{copiedText === 'eth' ? '¡Dirección Copiada!' : 'Copiar Dirección'}</span>
+                                        <Check className={`w-3.5 h-3.5 text-emerald-600 transition-transform ${copiedText === 'ltc' ? 'scale-110' : 'scale-0'}`} />
+                                        <span>{copiedText === 'ltc' ? '¡Dirección Copiada!' : 'Copiar Dirección'}</span>
                                       </button>
                                     </div>
                                   </div>
