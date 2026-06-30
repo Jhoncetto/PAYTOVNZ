@@ -133,7 +133,7 @@ export default function App() {
     lastName: '',
     email: '',
     phone: '',
-    paymentMethod: 'card' as 'card' | 'qrexpress' | 'crypto',
+    paymentMethod: 'qrexpress' as 'card' | 'qrexpress' | 'crypto',
     cardHolder: '',
     cardNumber: '',
     cardExpiry: '',
@@ -414,7 +414,7 @@ export default function App() {
       lastName: '',
       email: '',
       phone: '',
-      paymentMethod: 'card',
+      paymentMethod: 'qrexpress',
       cardHolder: '',
       cardNumber: '',
       cardExpiry: '',
@@ -1078,7 +1078,7 @@ export default function App() {
                                 Mantenimiento
                               </div>
                               <CreditCard className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-                              <span className="text-center">Tarjeta / PSE / ePayco</span>
+                              <span className="text-center">Tarjeta de Crédito / PSE</span>
                             </button>
 
                             <button
@@ -1114,10 +1114,10 @@ export default function App() {
                           {/* Contenedor del Formulario o QR */}
                           <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100 min-h-[220px] transition-all duration-300">
                             
-                            {/* OPCIÓN A: PASARELA EPAYCO Y TRANSFERENCIA DIRECTA */}
+                            {/* OPCIÓN A: PAGO CON TARJETA Y TRANSFERENCIA DIRECTA */}
                             {personalData.paymentMethod === 'card' && (
                               <div className="space-y-4 animate-fadeIn">
-                                {/* Pasarela de Pagos Activa ePayco */}
+                                {/* Pasarela de Pagos Tarjeta */}
                                 <div className="p-5 bg-amber-50/40 dark:bg-amber-950/10 rounded-2xl border border-amber-200/50 dark:border-amber-900/30 text-center space-y-3.5 shadow-sm">
                                   <div className="flex items-center justify-center gap-1.5">
                                     <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
@@ -1126,7 +1126,7 @@ export default function App() {
                                   
                                   <div className="max-w-md mx-auto space-y-2.5">
                                     <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-normal font-medium">
-                                      La opción de pago automático con <strong>Tarjeta de Crédito, Débito o PSE</strong> se encuentra temporalmente en mantenimiento por actualización del sistema.
+                                      La opción de pago automático con <strong>Tarjeta de Crédito o PSE</strong> se encuentra temporalmente en mantenimiento por actualización del sistema.
                                     </p>
                                     <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
                                       Por favor, utiliza la opción de <strong>Transferencia Directa</strong> a nuestra cuenta corriente detallada abajo. Tu donación seguirá estando 100% protegida y podrás generar tu certificado PDF de igual manera.
