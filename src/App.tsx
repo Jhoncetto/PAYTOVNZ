@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { jsPDF } from 'jspdf';
+import confetti from 'canvas-confetti';
 import { 
   Heart, 
   HeartHandshake, 
@@ -27,7 +29,10 @@ import {
   Share2,
   Coins,
   AlertTriangle,
-  Building
+  Building,
+  ExternalLink,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 // Interfaces para los datos de la aplicación
@@ -63,7 +68,7 @@ interface FAQItem {
 export const QR_CONFIG = {
   paypal: {
     qrImageUrl: "./image/paypal_qr.jpg", // Carga aquí la URL de tu imagen de QR PayPal
-    accountEmail: "donaciones@esperanzaactiva.org",
+    accountEmail: "donacionesvenezuela2026@gmail.com",
     recipientName: "Esperanza Active Foundation (Emergencia Terremoto)"
   },
   nequi: {
@@ -147,6 +152,68 @@ export default function App() {
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [downloadingCertificate, setDownloadingCertificate] = useState(false);
   const [certificateDownloaded, setCertificateDownloaded] = useState(false);
+
+  // Estado para el modo oscuro
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme');
+      return savedTheme === 'dark';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
+  // Disparar confeti tricolor venezolano cuando se completa exitosamente la donación (Paso 4)
+  useEffect(() => {
+    if (currentStep === 4) {
+      const colors = ['#F7D117', '#003893', '#CF142B', '#10B981', '#3B82F6'];
+      
+      // Primera ráfaga desde el centro
+      confetti({
+        particleCount: 140,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: colors,
+        ticks: 250
+      });
+
+      // Segunda ráfaga lateral izquierda
+      const t1 = setTimeout(() => {
+        confetti({
+          particleCount: 70,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.75 },
+          colors: colors
+        });
+      }, 250);
+
+      // Tercera ráfaga lateral derecha
+      const t2 = setTimeout(() => {
+        confetti({
+          particleCount: 70,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.75 },
+          colors: colors
+        });
+      }, 450);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
+  }, [currentStep]);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -297,7 +364,20 @@ export default function App() {
         setFormErrors('Por favor, confirma que completaste la transferencia y marcaste la casilla de confirmación antes de continuar.');
         return;
       }
-      // Simulación exitosa
+      // Simulación exitosa - Cambia la URL de forma interactiva a pago exitoso
+      window.history.pushState({ step: 4 }, '', '?pago=exitoso');
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        try {
+          (window as any).gtag('event', 'conversion', {
+            'send_to': 'AW-18287330924',
+            'value': activeAmount,
+            'currency': 'USD',
+            'transaction_id': `EA-${Date.now()}`
+          });
+        } catch (e) {
+          console.error("Error al registrar evento gtag:", e);
+        }
+      }
       setCurrentStep(4);
     }
   };
@@ -321,6 +401,8 @@ export default function App() {
   };
 
   const resetDonation = () => {
+    // Restaurar la URL limpia original al reiniciar la donación
+    window.history.pushState({}, '', window.location.pathname);
     setCurrentStep(1);
     setSelectedAmount(25);
     setCustomAmount('');
@@ -348,53 +430,193 @@ export default function App() {
       setDownloadingCertificate(false);
       setCertificateDownloaded(true);
       
-      // Simulate triggers an actual mock text file download to prove system is interactive
-      const element = document.createElement("a");
-      const file = new Blob([
-        `==================================================\n` +
-        `   CERTIFICADO DE RESPUESTA HUMANITARIA - SISMO    \n` +
-        `            ESPERANZA ACTIVA VENEZUELA            \n` +
-        `==================================================\n\n` +
-        `Otorgado con profunda gratitud a:\n` +
-        `   ${personalData.firstName} ${personalData.lastName || ''}\n\n` +
-        `Por sembrar una semilla de vida y socorrer de inmediato\n` +
-        `mediante su donación de $${activeAmount} USD destinada a proveer\n` +
-        `auxilio médico de trauma, mantas térmicas, agua potable y kits de\n` +
-        `refugio de emergencia a las familias damnificadas por el terremoto\n` +
-        `en Venezuela.\n\n` +
-        `--------------------------------------------------\n` +
-        `Fecha de Emisión: ${new Date().toLocaleDateString()}\n` +
-        `Código de Validación: EA-SISMO-CERT-${Math.floor(100000 + Math.random() * 900000)}\n` +
-        `Esperanza Activa Foundation • Caracas - Mérida - Táchira\n` +
-        `==================================================\n`
-      ], {type: 'text/plain'});
-      element.href = URL.createObjectURL(file);
-      element.download = `Certificado_Esperanza_Activa_${personalData.firstName}.txt`;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-    }, 2000);
+      try {
+        // Inicializar jsPDF (formato A4 estándar en vertical)
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        // 1. Dibujar Marco Elegante Doble (Estilo Diploma)
+        doc.setDrawColor(207, 20, 43); // Rojo marca
+        doc.setLineWidth(1);
+        doc.rect(8, 8, pageWidth - 16, pageHeight - 16);
+
+        doc.setDrawColor(0, 56, 147); // Azul marca (#003893)
+        doc.setLineWidth(0.3);
+        doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+        // 2. Esquinas decorativas
+        doc.setDrawColor(247, 209, 23); // Amarillo/Oro (#F7D117)
+        doc.setLineWidth(1.5);
+        // Superior Izquierda
+        doc.line(7, 7, 18, 7);
+        doc.line(7, 7, 7, 18);
+        // Superior Derecha
+        doc.line(pageWidth - 7, 7, pageWidth - 18, 7);
+        doc.line(pageWidth - 7, 7, pageWidth - 7, 18);
+        // Inferior Izquierda
+        doc.line(7, pageHeight - 7, 18, pageHeight - 7);
+        doc.line(7, pageHeight - 7, 7, pageHeight - 18);
+        // Inferior Derecha
+        doc.line(pageWidth - 7, pageHeight - 7, pageWidth - 18, pageHeight - 7);
+        doc.line(pageWidth - 7, pageHeight - 7, pageWidth - 7, pageHeight - 18);
+
+        // 3. Encabezado de la Fundación
+        doc.setTextColor(0, 56, 147); // Azul
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(22);
+        doc.text('ESPERANZA ACTIVA', pageWidth / 2, 35, { align: 'center' });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139); // Slate-500
+        doc.text('FUNDACIÓN DE RESPUESTA HUMANITARIA Y AUXILIO EN EMERGENCIAS', pageWidth / 2, 41, { align: 'center' });
+
+        // Línea divisora tricolor (Bandera de Venezuela)
+        const lineY = 46;
+        const barWidth = 40;
+        doc.setLineWidth(1.5);
+        doc.setDrawColor(247, 209, 23); // Amarillo
+        doc.line(pageWidth / 2 - barWidth, lineY, pageWidth / 2 - barWidth / 3, lineY);
+        doc.setDrawColor(0, 56, 147); // Azul
+        doc.line(pageWidth / 2 - barWidth / 3, lineY, pageWidth / 2 + barWidth / 3, lineY);
+        doc.setDrawColor(207, 20, 43); // Rojo
+        doc.line(pageWidth / 2 + barWidth / 3, lineY, pageWidth / 2 + barWidth, lineY);
+
+        // 4. Título del Diploma
+        doc.setTextColor(207, 20, 43); // Rojo
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(24);
+        doc.text('CERTIFICADO DE AGRADECIMIENTO', pageWidth / 2, 65, { align: 'center' });
+
+        doc.setTextColor(51, 65, 85); // Slate-700
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(13);
+        doc.text('Otorgado con profunda gratitud y reconocimiento a:', pageWidth / 2, 80, { align: 'center' });
+
+        // 5. Nombre del Donante
+        const fullName = `${personalData.firstName} ${personalData.lastName || ''}`.trim().toUpperCase();
+        doc.setTextColor(0, 56, 147); // Azul
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(26);
+        doc.text(fullName, pageWidth / 2, 98, { align: 'center' });
+
+        // Línea sutil bajo el nombre
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(226, 232, 240); // Slate-200
+        doc.line(40, 104, pageWidth - 40, 104);
+
+        // 6. Texto de Mérito
+        doc.setTextColor(71, 85, 105); // Slate-600
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        
+        const descriptionText = 
+          `Por su invaluable aporte humanitario y solidaridad de $${activeAmount} USD destinado a ` +
+          `proveer auxilio médico de trauma, mantas térmicas, agua potable, alimentos y kits de ` +
+          `refugio de emergencia a las familias damnificadas por el terremoto en Venezuela.\n\n` +
+          `Su oportuna y generosa acción siembra una semilla de vida y esperanza en medio de la adversidad, ` +
+          `permitiendo que nuestros equipos de Cruz Verde sigan rescatando y resguardando vidas en el campo.`;
+
+        const splitDescription = doc.splitTextToSize(descriptionText, pageWidth - 50);
+        doc.text(splitDescription, pageWidth / 2, 116, { align: 'center', lineHeightFactor: 1.5 });
+
+        // 7. Sello decorativo vectorizado (Corazón y Círculos concéntricos en Oro)
+        const sealX = pageWidth / 2;
+        const sealY = 185;
+        doc.setDrawColor(247, 209, 23); // Oro
+        doc.setLineWidth(0.5);
+        doc.circle(sealX, sealY, 14); // Círculo exterior
+        doc.setLineWidth(0.2);
+        doc.circle(sealX, sealY, 12); // Círculo interior
+        
+        // Estrellitas decorativas alrededor del sello (Venezuela)
+        doc.setFontSize(16);
+        doc.setTextColor(247, 209, 23);
+        doc.text('★', sealX - 1.5, sealY + 2.5); // Estrella central
+
+        // 8. Firmas
+        const sigY = 230;
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(203, 213, 225); // Slate-300
+        
+        // Firma Izquierda
+        doc.line(35, sigY, 95, sigY);
+        doc.setTextColor(51, 65, 85);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('Dr. Alejandro Moreno', 65, sigY + 5, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Director de Emergencias', 65, sigY + 9, { align: 'center' });
+        doc.text('Esperanza Activa', 65, sigY + 13, { align: 'center' });
+
+        // Firma Derecha
+        doc.line(pageWidth - 95, sigY, pageWidth - 35, sigY);
+        doc.setTextColor(51, 65, 85);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('Lcda. Elena Restrepo', pageWidth - 65, sigY + 5, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Coordinadora de Campo', pageWidth - 65, sigY + 9, { align: 'center' });
+        doc.text('Comité de Cruz Verde', pageWidth - 65, sigY + 13, { align: 'center' });
+
+        // 9. Pie de página con código de verificación
+        const valCode = `EA-SISMO-CERT-${Math.floor(100000 + Math.random() * 900000)}`;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184); // Slate-400
+        doc.text(`CÓDIGO DE VALIDACIÓN: ${valCode}`, 15, pageHeight - 14);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString()}`, pageWidth - 15, pageHeight - 14, { align: 'right' });
+
+        doc.setFontSize(7);
+        doc.text('Este es un certificado de agradecimiento oficial emitido por Esperanza Activa Foundation para registrar la solidaridad humanitaria.', pageWidth / 2, pageHeight - 9, { align: 'center' });
+
+        // Guardar el PDF
+        doc.save(`Certificado_Esperanza_Activa_${personalData.firstName.replace(/\s+/g, '_')}.pdf`);
+      } catch (error) {
+        console.error("Error al generar PDF:", error);
+        // Fallback simple si jspdf falla por alguna razón
+        const element = document.createElement("a");
+        const file = new Blob([`Certificado de Esperanza Activa para ${personalData.firstName} por $${activeAmount} USD. Código de Validación: EA-SISMO-CERT`], {type: 'text/plain'});
+        element.href = URL.createObjectURL(file);
+        element.download = `Certificado_Esperanza_Activa_${personalData.firstName}.txt`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
+    }, 1200);
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFBFA] text-slate-800 font-sans flex flex-col selection:bg-rose-100 selection:text-rose-900">
+    <div className="min-h-screen bg-[#FBFBFA] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans flex flex-col selection:bg-rose-100 dark:selection:bg-rose-950 selection:text-rose-900 dark:selection:text-rose-200 transition-colors duration-300">
       
       {/* 1. HEADER (ENCABEZADO) */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-100 transition-all duration-300">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-900/85 border-b border-slate-100 dark:border-slate-800 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
           
           {/* Logo y Nombre de Fundación */}
           <a href="#" className="flex items-center gap-2.5 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#003893] via-[#CF142B] to-[#F7D117] p-[2px] shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-              <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
+              <div className="w-full h-full bg-white dark:bg-slate-900 rounded-[10px] flex items-center justify-center">
                 <Heart className="w-5 h-5 text-[#CF142B] fill-[#CF142B]" />
               </div>
             </div>
             <div>
-              <span className="font-bold text-base sm:text-lg tracking-tight text-[#003893] block leading-tight">
+              <span className="font-bold text-base sm:text-lg tracking-tight text-[#003893] dark:text-white block leading-tight">
                 Esperanza Activa
               </span>
-              <span className="text-[10px] sm:text-xs text-slate-500 font-medium block">
+              <span className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block">
                 Ayuda Humanitaria para Venezuela
               </span>
             </div>
@@ -402,70 +624,87 @@ export default function App() {
 
           {/* Menú de Navegación de Escritorio */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#como-ayudar" className="text-sm font-medium text-slate-600 hover:text-[#003893] transition-colors">
+            <a href="#como-ayudar" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#003893] dark:hover:text-amber-400 transition-colors">
               ¿Cómo ayuda tu donación?
             </a>
-            <a href="#impacto" className="text-sm font-medium text-slate-600 hover:text-[#003893] transition-colors">
+            <a href="#impacto" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#003893] dark:hover:text-amber-400 transition-colors">
               Nuestro Impacto
             </a>
-            <a href="#testimonios" className="text-sm font-medium text-slate-600 hover:text-[#003893] transition-colors">
+            <a href="#testimonios" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#003893] dark:hover:text-amber-400 transition-colors">
               Testimonios de campo
             </a>
-            <a href="#faq" className="text-sm font-medium text-slate-600 hover:text-[#003893] transition-colors">
+            <a href="#faq" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#003893] dark:hover:text-amber-400 transition-colors">
               Preguntas Frecuentes
             </a>
           </nav>
 
-          {/* Botón CTA del Header */}
+          {/* Botón CTA del Header + Interruptor de Tema */}
           <div className="hidden md:flex items-center gap-4">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2.5 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95 cursor-pointer"
+              aria-label="Cambiar tema"
+              title={darkMode ? "Activar modo claro" : "Activar modo oscuro"}
+            >
+              {darkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-slate-700" />}
+            </button>
             <a 
               href="#formulario-donacion"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-bold bg-[#CF142B] text-white hover:bg-[#b81024] active:scale-95 transition-all shadow-md shadow-rose-200"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-bold bg-[#CF142B] text-white hover:bg-[#b81024] active:scale-95 transition-all shadow-md shadow-rose-200 dark:shadow-none"
             >
               Donar Ahora
               <Heart className="w-4 h-4 ml-1.5 fill-current animate-pulse" />
             </a>
           </div>
 
-          {/* Botón de Menú Móvil */}
-          <button 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none"
-            aria-label="Abrir menú"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Botón de Menú Móvil + Interruptor de Tema Móvil */}
+          <div className="flex items-center gap-1.5 md:hidden">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Cambiar tema"
+            >
+              {darkMode ? <Sun className="w-5.5 h-5.5 text-amber-500" /> : <Moon className="w-5.5 h-5.5 text-slate-700" />}
+            </button>
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white focus:outline-none"
+              aria-label="Abrir menú"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Menú Móvil Desplegable */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-100 py-4 px-6 animate-fadeIn">
+          <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 py-4 px-6 animate-fadeIn">
             <nav className="flex flex-col gap-4">
               <a 
                 href="#como-ayudar" 
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-slate-600 hover:text-[#003893]"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#003893] dark:hover:text-amber-400"
               >
                 ¿Cómo ayuda tu donación?
               </a>
               <a 
                 href="#impacto" 
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-slate-600 hover:text-[#003893]"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#003893] dark:hover:text-amber-400"
               >
                 Nuestro Impacto
               </a>
               <a 
                 href="#testimonios" 
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-slate-600 hover:text-[#003893]"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#003893] dark:hover:text-amber-400"
               >
                 Testimonios de campo
               </a>
               <a 
                 href="#faq" 
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-slate-600 hover:text-[#003893]"
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#003893] dark:hover:text-amber-400"
               >
                 Preguntas Frecuentes
               </a>
@@ -614,22 +853,22 @@ export default function App() {
                           
                           {/* Selector Frecuencia (Mensual vs Única) */}
                           <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 text-center">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 text-center">
                               Frecuencia de la Ayuda
                             </label>
-                            <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl">
+                            <div className="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
                               <button
                                 type="button"
                                 onClick={() => setDonationFrequency('monthly')}
-                                className={`py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition-all duration-300 ${
+                                className={`py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition-all duration-300 cursor-pointer ${
                                   donationFrequency === 'monthly'
-                                    ? 'bg-white text-[#003893] shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900'
+                                    ? 'bg-white dark:bg-slate-700 text-[#003893] dark:text-blue-300 shadow-sm'
+                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                                 }`}
                               >
                                 <span className="flex items-center justify-center gap-1.5">
                                   Mensual
-                                  <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-[#CF142B] text-[9px] font-extrabold uppercase">
+                                  <span className="px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-[#CF142B] dark:text-rose-400 text-[9px] font-extrabold uppercase">
                                     Recomendado
                                   </span>
                                 </span>
@@ -637,10 +876,10 @@ export default function App() {
                               <button
                                 type="button"
                                 onClick={() => setDonationFrequency('once')}
-                                className={`py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition-all duration-300 ${
+                                className={`py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl transition-all duration-300 cursor-pointer ${
                                   donationFrequency === 'once'
-                                    ? 'bg-white text-[#003893] shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900'
+                                    ? 'bg-white dark:bg-slate-700 text-[#003893] dark:text-blue-300 shadow-sm'
+                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                                 }`}
                               >
                                 Única vez
@@ -650,7 +889,7 @@ export default function App() {
 
                           {/* Botones de Montos */}
                           <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                               Selecciona un monto de donación (USD)
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -659,10 +898,10 @@ export default function App() {
                                   key={amount}
                                   type="button"
                                   onClick={() => handleAmountSelect(amount)}
-                                  className={`py-3 px-2 rounded-2xl text-center border font-bold text-lg sm:text-xl transition-all duration-300 ${
+                                  className={`py-3 px-2 rounded-2xl text-center border font-bold text-lg sm:text-xl transition-all duration-300 cursor-pointer ${
                                     selectedAmount === amount
-                                      ? 'border-[#003893] bg-[#003893]/5 text-[#003893] ring-2 ring-[#003893]/20'
-                                      : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
+                                      ? 'border-[#003893] bg-[#003893]/5 dark:bg-[#003893]/15 text-[#003893] dark:text-blue-300 ring-2 ring-[#003893]/20'
+                                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200'
                                   }`}
                                 >
                                   ${amount}
@@ -673,7 +912,7 @@ export default function App() {
 
                           {/* Campo Personalizado */}
                           <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                               O ingresa otro monto personalizado
                             </label>
                             <div className="relative">
@@ -683,10 +922,10 @@ export default function App() {
                                 placeholder="Ej: 75"
                                 value={customAmount}
                                 onChange={handleCustomAmountChange}
-                                className={`w-full pl-8 pr-12 py-3 rounded-2xl border text-lg font-bold text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 transition-all ${
+                                className={`w-full pl-8 pr-12 py-3 rounded-2xl border text-lg font-bold text-slate-800 dark:text-slate-100 placeholder-slate-300 dark:placeholder-slate-600 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 transition-all ${
                                   selectedAmount === 'custom' 
-                                    ? 'border-[#003893] ring-2 ring-[#003893]/20' 
-                                    : 'border-slate-200 focus:border-slate-300'
+                                    ? 'border-[#003893] ring-2 ring-[#003893]/20 dark:ring-blue-500/20' 
+                                    : 'border-slate-200 dark:border-slate-700 focus:border-slate-300 dark:focus:border-slate-600'
                                 }`}
                               />
                               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">USD</span>
@@ -694,13 +933,13 @@ export default function App() {
                           </div>
 
                           {/* Cuadro de Impacto Dinámico */}
-                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#CF142B] block mb-1">Tu Impacto Estimado</span>
-                            <p className="text-slate-700 text-xs sm:text-sm font-medium leading-relaxed">
+                          <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-850">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#CF142B] dark:text-rose-400 block mb-1">Tu Impacto Estimado</span>
+                            <p className="text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-medium leading-relaxed">
                               {getDynamicImpactMessage(activeAmount)}
                             </p>
                             {donationFrequency === 'monthly' && (
-                              <span className="block mt-2 text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded w-fit">
+                              <span className="block mt-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded w-fit">
                                 ↺ Compromiso mensual de ayuda recurrente
                               </span>
                             )}
@@ -709,7 +948,7 @@ export default function App() {
                           {/* Botón Siguiente */}
                           <button
                             type="submit"
-                            className="w-full py-4 rounded-2xl bg-[#CF142B] text-white font-extrabold text-base hover:bg-[#b81024] transition-all shadow-lg shadow-rose-200 flex items-center justify-center gap-2 group cursor-pointer"
+                            className="w-full py-4 rounded-2xl bg-[#CF142B] text-white font-extrabold text-base hover:bg-[#b81024] transition-all shadow-lg shadow-rose-200 dark:shadow-none flex items-center justify-center gap-2 group cursor-pointer"
                           >
                             Continuar con ${activeAmount} {donationFrequency === 'monthly' ? '/ mes' : ''}
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -831,15 +1070,15 @@ export default function App() {
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: 'card' })}
                               className={`py-3 px-3 rounded-2xl font-bold text-xs border transition-all duration-300 flex flex-col items-center justify-center gap-1.5 cursor-pointer relative overflow-hidden ${
                                 personalData.paymentMethod === 'card'
-                                  ? 'border-[#003893] bg-[#003893]/5 text-[#003893] ring-2 ring-[#003893]/10'
-                                  : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
+                                  ? 'border-[#003893] bg-[#003893]/5 dark:bg-[#003893]/15 text-[#003893] dark:text-blue-300 ring-2 ring-[#003893]/10 dark:ring-blue-500/20'
+                                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900'
                               }`}
                             >
-                              <div className="absolute -top-1 -right-1 bg-amber-500 text-white font-black px-1.5 py-0.5 rounded-bl-md text-[8px] uppercase tracking-widest scale-90 origin-top-right animate-pulse">
-                                Tarjeta Off
+                              <div className="absolute -top-1 -right-1 bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-bl-md text-[8px] uppercase tracking-widest scale-90 origin-top-right animate-pulse">
+                                Activo
                               </div>
-                              <Building className="w-5 h-5 text-[#003893]" />
-                              <span className="text-center">Cuenta Corriente / Transf.</span>
+                              <CreditCard className="w-5 h-5 text-[#003893] dark:text-blue-400" />
+                              <span className="text-center">Tarjeta / PSE / ePayco</span>
                             </button>
 
                             <button
@@ -847,13 +1086,13 @@ export default function App() {
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: 'qrexpress' })}
                               className={`py-3 px-3 rounded-2xl font-bold text-xs border transition-all duration-300 flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                                 personalData.paymentMethod === 'qrexpress'
-                                  ? 'border-[#CF142B] bg-[#CF142B]/5 text-[#CF142B] ring-2 ring-[#CF142B]/10'
-                                  : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
+                                  ? 'border-[#CF142B] bg-[#CF142B]/5 dark:bg-[#CF142B]/15 text-[#CF142B] dark:text-rose-400 ring-2 ring-[#CF142B]/10 dark:ring-rose-500/20'
+                                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900'
                               }`}
                             >
                               <div className="flex gap-1 items-center justify-center">
                                 <span className="w-2 h-2 bg-[#F7D117] rounded-full animate-ping" />
-                                <Globe className="w-5 h-5 text-slate-500" />
+                                <Globe className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                               </div>
                               <span className="text-center">Transferencia / QR Express</span>
                             </button>
@@ -863,11 +1102,11 @@ export default function App() {
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: 'crypto' })}
                               className={`py-3 px-3 rounded-2xl font-bold text-xs border transition-all duration-300 flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                                 personalData.paymentMethod === 'crypto'
-                                  ? 'border-emerald-600 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/10'
-                                  : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
+                                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 ring-2 ring-emerald-500/10 dark:ring-emerald-500/20'
+                                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900'
                               }`}
                             >
-                              <Coins className="w-5 h-5 text-emerald-600" />
+                              <Coins className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                               <span className="text-center">Billeteras Cripto</span>
                             </button>
                           </div>
@@ -875,38 +1114,83 @@ export default function App() {
                           {/* Contenedor del Formulario o QR */}
                           <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100 min-h-[220px] transition-all duration-300">
                             
-                            {/* OPCIÓN A: CUENTA CORRIENTE BANCARIA (TRANSFERENCIA DIRECTA) */}
+                            {/* OPCIÓN A: PASARELA EPAYCO Y TRANSFERENCIA DIRECTA */}
                             {personalData.paymentMethod === 'card' && (
                               <div className="space-y-4 animate-fadeIn">
-                                {/* Alerta de Mantenimiento de Tarjeta */}
-                                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-800">
-                                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                                  <div className="space-y-0.5">
-                                    <span className="font-extrabold text-amber-900 block">Procesador de Tarjetas en Mantenimiento Técnico</span>
-                                    <p className="text-amber-800 leading-normal text-[11px]">
-                                      Nuestra pasarela directa de cobro automático con tarjeta se encuentra en mantenimiento temporal para actualización de servidores de seguridad interbancaria. Puedes transferir directamente a nuestra **Cuenta Corriente** autorizada.
+                                {/* Pasarela de Pagos Activa ePayco */}
+                                <div className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-blue-100 dark:border-slate-800 shadow-sm text-center space-y-4">
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    <span className="font-extrabold text-[#1565C0] dark:text-blue-400 text-xs uppercase tracking-widest">Pasarela Segura con ePayco</span>
+                                    <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 text-[9px] font-extrabold uppercase tracking-widest animate-pulse">Activo</span>
+                                  </div>
+                                  
+                                  <div className="max-w-md mx-auto space-y-3">
+                                    <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-normal">
+                                      Haz clic en el botón de abajo para completar tu donación de <strong className="text-slate-800 dark:text-white font-bold">${activeAmount} USD</strong> utilizando tu <strong>Tarjeta de Crédito, Débito</strong> o a través de <strong>PSE (Cuentas de Ahorros, Corriente, Nequi o Daviplata)</strong> de forma 100% segura.
                                     </p>
+
+                                    {/* Lista de logos o métodos soportados con badges súper limpios */}
+                                    <div className="flex flex-wrap items-center justify-center gap-1.5 py-1">
+                                      {['VISA', 'Mastercard', 'Amex', 'Diners', 'PSE', 'Nequi', 'Daviplata'].map((pay) => (
+                                        <span key={pay} className="px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[9px] font-bold text-slate-500 dark:text-slate-400">
+                                          {pay}
+                                        </span>
+                                      ))}
+                                    </div>
+
+                                    {/* Instrucciones de confirmación rápidas */}
+                                    <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100/50 dark:border-amber-950/40 rounded-xl p-3 text-left space-y-1.5">
+                                      <span className="text-[10px] font-extrabold text-amber-800 dark:text-amber-400 uppercase tracking-wider block">Pasos para tu Certificado:</span>
+                                      <ol className="text-[11px] text-slate-600 dark:text-slate-400 list-decimal pl-4 space-y-1">
+                                        <li>Haz clic en <strong>"Pagar Seguro con ePayco"</strong> (se abrirá en una pestaña segura).</li>
+                                        <li>Completa el pago en la plataforma certificada de ePayco.</li>
+                                        <li>Regresa a esta ventana, marca la casilla de confirmación abajo y haz clic en <strong>"Confirmar Donación"</strong>.</li>
+                                      </ol>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Botón de acción principal visible, elegante y sumamente confiable */}
+                                  <div className="flex flex-col items-center justify-center gap-2 pt-1">
+                                    <a
+                                      href="https://donacionvnz2026.epayco.me/"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="py-3 px-6 rounded-2xl bg-[#1565C0] hover:bg-[#0D47A1] dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-black flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer w-full max-w-[280px] shadow-md hover:shadow-lg active:scale-98 tracking-wide uppercase"
+                                    >
+                                      <Lock className="w-3.5 h-3.5 fill-current" />
+                                      <span>Pagar Seguro con ePayco</span>
+                                      <ExternalLink className="w-3.5 h-3.5" />
+                                    </a>
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 justify-center">
+                                      Conexión SSL encriptada de ePayco S.A.S.
+                                    </span>
                                   </div>
                                 </div>
 
+                                <div className="relative flex py-1 items-center">
+                                  <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                                  <span className="flex-shrink mx-3 text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">O transferencia directa</span>
+                                  <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                                </div>
+
                                 <div className="space-y-2">
-                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Datos de Cuenta Corriente para Transferencia</span>
+                                  <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Datos de Cuenta Corriente para Transferencia</span>
                                   
-                                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden text-xs divide-y divide-slate-100">
+                                  <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-850 overflow-hidden text-xs divide-y divide-slate-100 dark:divide-slate-800/50">
                                     {[
                                       { label: 'Banco', value: BANK_ACCOUNT_CONFIG.bankName, copyKey: 'bank_name' },
                                       { label: 'Tipo de Cuenta', value: BANK_ACCOUNT_CONFIG.accountType, copyKey: 'bank_type' },
                                       { label: 'Número de Cuenta', value: BANK_ACCOUNT_CONFIG.accountNumber, copyKey: 'bank_number', isMono: true },
                                     ].map((item) => (
-                                      <div key={item.copyKey} className="flex justify-between items-center p-2.5 hover:bg-slate-50 transition-colors">
+                                      <div key={item.copyKey} className="flex justify-between items-center p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                         <div className="flex flex-col">
-                                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{item.label}</span>
-                                          <span className={`font-semibold text-slate-800 ${item.isMono ? 'font-mono' : ''}`}>{item.value}</span>
+                                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">{item.label}</span>
+                                          <span className={`font-semibold text-slate-800 dark:text-slate-200 ${item.isMono ? 'font-mono' : ''}`}>{item.value}</span>
                                         </div>
                                         <button
                                           type="button"
                                           onClick={() => copyToClipboard(item.value, item.copyKey)}
-                                          className="py-1 px-2 rounded-lg border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-[10px] font-bold text-slate-600 flex items-center gap-1 transition-all cursor-pointer shadow-sm shrink-0"
+                                          className="py-1 px-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1 transition-all cursor-pointer shadow-sm shrink-0"
                                         >
                                           <Check className={`w-3 h-3 text-emerald-600 transition-transform ${copiedText === item.copyKey ? 'scale-110' : 'scale-0'}`} />
                                           <span>{copiedText === item.copyKey ? '¡Copiado!' : 'Copiar'}</span>
@@ -917,16 +1201,16 @@ export default function App() {
                                 </div>
 
                                 {/* Confirmación de Transferencia */}
-                                <div className="border-t border-slate-200 pt-3 flex flex-col space-y-2">
-                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Confirmación de Operación</span>
-                                  <label className="flex items-start gap-2.5 text-xs text-slate-600 font-medium cursor-pointer">
+                                <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex flex-col space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">Confirmación de Operación</span>
+                                  <label className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 font-medium cursor-pointer">
                                     <input
                                       type="checkbox"
                                       checked={personalData.qrConfirmationChecked}
                                       onChange={(e) => setPersonalData({...personalData, qrConfirmationChecked: e.target.checked})}
                                       className="mt-0.5 rounded border-slate-300 text-[#003893] focus:ring-[#003893] w-4 h-4"
                                     />
-                                    <span>Ya he realizado la transferencia bancaria nacional/internacional por el monto equivalente a <strong>${activeAmount} USD</strong> a la cuenta corriente especificada.</span>
+                                    <span>Ya he completado mi pago seguro en ePayco o realizado la transferencia bancaria por el monto de <strong>${activeAmount} USD</strong>.</span>
                                   </label>
                                 </div>
                               </div>
@@ -1035,6 +1319,16 @@ export default function App() {
                                         <Check className={`w-3.5 h-3.5 text-emerald-600 transition-transform ${copiedText === 'paypal' ? 'scale-110' : 'scale-0'}`} />
                                         <span>{copiedText === 'paypal' ? '¡Correo Copiado!' : 'Copiar Correo PayPal'}</span>
                                       </button>
+
+                                      <a
+                                        href="https://www.paypal.com/paypalme/donacionesvnz2026"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="py-2.5 px-3 rounded-xl bg-[#0079C1] hover:bg-[#005ea6] text-[11px] font-extrabold text-white flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer w-full shadow-sm hover:shadow-md"
+                                      >
+                                        <ExternalLink className="w-3.5 h-3.5" />
+                                        <span>Pagar con PayPal.me</span>
+                                      </a>
                                     </div>
                                   </div>
                                 )}
@@ -1101,22 +1395,10 @@ export default function App() {
                                       </p>
                                       <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-[11px] space-y-1 text-left">
                                         <div className="flex justify-between items-center">
-                                          <span className="text-slate-400">Celular Nequi:</span>
-                                          <span className="font-mono font-bold text-slate-800">{QR_CONFIG.nequi.phoneNumber}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center pt-1 border-t border-slate-100">
                                           <span className="text-slate-400">Titular Cuenta:</span>
                                           <span className="font-semibold text-slate-700">{QR_CONFIG.nequi.accountName}</span>
                                         </div>
                                       </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => copyToClipboard(QR_CONFIG.nequi.phoneNumber, 'nequi')}
-                                        className="py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer w-full"
-                                      >
-                                        <Check className={`w-3.5 h-3.5 text-emerald-600 transition-transform ${copiedText === 'nequi' ? 'scale-110' : 'scale-0'}`} />
-                                        <span>{copiedText === 'nequi' ? '¡Número Copiado!' : 'Copiar Número Celular'}</span>
-                                      </button>
                                     </div>
                                   </div>
                                 )}
@@ -1186,10 +1468,6 @@ export default function App() {
                                         <div className="flex justify-between items-center">
                                           <span className="text-slate-400">Llave / Alias Bre-B:</span>
                                           <span className="font-mono font-bold text-slate-800">{QR_CONFIG.breb.aliasKey}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-                                          <span className="text-slate-400">Tipo de Llave:</span>
-                                          <span className="font-semibold text-slate-700">{QR_CONFIG.breb.keyType}</span>
                                         </div>
                                       </div>
                                       <button
