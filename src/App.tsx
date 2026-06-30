@@ -1070,14 +1070,14 @@ export default function App() {
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: 'card' })}
                               className={`py-3 px-3 rounded-2xl font-bold text-xs border transition-all duration-300 flex flex-col items-center justify-center gap-1.5 cursor-pointer relative overflow-hidden ${
                                 personalData.paymentMethod === 'card'
-                                  ? 'border-[#003893] bg-[#003893]/5 dark:bg-[#003893]/15 text-[#003893] dark:text-blue-300 ring-2 ring-[#003893]/10 dark:ring-blue-500/20'
+                                  ? 'border-amber-500 bg-amber-500/5 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/10'
                                   : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900'
                               }`}
                             >
-                              <div className="absolute -top-1 -right-1 bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-bl-md text-[8px] uppercase tracking-widest scale-90 origin-top-right animate-pulse">
-                                Activo
+                              <div className="absolute -top-1 -right-1 bg-amber-500 text-slate-950 font-extrabold px-1.5 py-0.5 rounded-bl-md text-[8px] uppercase tracking-widest scale-90 origin-top-right">
+                                Mantenimiento
                               </div>
-                              <CreditCard className="w-5 h-5 text-[#003893] dark:text-blue-400" />
+                              <CreditCard className="w-5 h-5 text-amber-500 dark:text-amber-400" />
                               <span className="text-center">Tarjeta / PSE / ePayco</span>
                             </button>
 
@@ -1118,58 +1118,25 @@ export default function App() {
                             {personalData.paymentMethod === 'card' && (
                               <div className="space-y-4 animate-fadeIn">
                                 {/* Pasarela de Pagos Activa ePayco */}
-                                <div className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-blue-100 dark:border-slate-800 shadow-sm text-center space-y-4">
+                                <div className="p-5 bg-amber-50/40 dark:bg-amber-950/10 rounded-2xl border border-amber-200/50 dark:border-amber-900/30 text-center space-y-3.5 shadow-sm">
                                   <div className="flex items-center justify-center gap-1.5">
-                                    <span className="font-extrabold text-[#1565C0] dark:text-blue-400 text-xs uppercase tracking-widest">Pasarela Segura con ePayco</span>
-                                    <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 text-[9px] font-extrabold uppercase tracking-widest animate-pulse">Activo</span>
+                                    <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                                    <span className="font-extrabold text-amber-800 dark:text-amber-400 text-xs uppercase tracking-widest">Pasarela Temporalmente Inactiva</span>
                                   </div>
                                   
-                                  <div className="max-w-md mx-auto space-y-3">
-                                    <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-normal">
-                                      Haz clic en el botón de abajo para completar tu donación de <strong className="text-slate-800 dark:text-white font-bold">${activeAmount} USD</strong> utilizando tu <strong>Tarjeta de Crédito, Débito</strong> o a través de <strong>PSE (Cuentas de Ahorros, Corriente, Nequi o Daviplata)</strong> de forma 100% segura.
+                                  <div className="max-w-md mx-auto space-y-2.5">
+                                    <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-normal font-medium">
+                                      La opción de pago automático con <strong>Tarjeta de Crédito, Débito o PSE</strong> se encuentra temporalmente en mantenimiento por actualización del sistema.
                                     </p>
-
-                                    {/* Lista de logos o métodos soportados con badges súper limpios */}
-                                    <div className="flex flex-wrap items-center justify-center gap-1.5 py-1">
-                                      {['VISA', 'Mastercard', 'Amex', 'Diners', 'PSE', 'Nequi', 'Daviplata'].map((pay) => (
-                                        <span key={pay} className="px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-[9px] font-bold text-slate-500 dark:text-slate-400">
-                                          {pay}
-                                        </span>
-                                      ))}
-                                    </div>
-
-                                    {/* Instrucciones de confirmación rápidas */}
-                                    <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100/50 dark:border-amber-950/40 rounded-xl p-3 text-left space-y-1.5">
-                                      <span className="text-[10px] font-extrabold text-amber-800 dark:text-amber-400 uppercase tracking-wider block">Pasos para tu Certificado:</span>
-                                      <ol className="text-[11px] text-slate-600 dark:text-slate-400 list-decimal pl-4 space-y-1">
-                                        <li>Haz clic en <strong>"Pagar Seguro con ePayco"</strong> (se abrirá en una pestaña segura).</li>
-                                        <li>Completa el pago en la plataforma certificada de ePayco.</li>
-                                        <li>Regresa a esta ventana, marca la casilla de confirmación abajo y haz clic en <strong>"Confirmar Donación"</strong>.</li>
-                                      </ol>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Botón de acción principal visible, elegante y sumamente confiable */}
-                                  <div className="flex flex-col items-center justify-center gap-2 pt-1">
-                                    <a
-                                      href="https://donacionvnz2026.epayco.me/"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="py-3 px-6 rounded-2xl bg-[#1565C0] hover:bg-[#0D47A1] dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-black flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer w-full max-w-[280px] shadow-md hover:shadow-lg active:scale-98 tracking-wide uppercase"
-                                    >
-                                      <Lock className="w-3.5 h-3.5 fill-current" />
-                                      <span>Pagar Seguro con ePayco</span>
-                                      <ExternalLink className="w-3.5 h-3.5" />
-                                    </a>
-                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 justify-center">
-                                      Conexión SSL encriptada de ePayco S.A.S.
-                                    </span>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
+                                      Por favor, utiliza la opción de <strong>Transferencia Directa</strong> a nuestra cuenta corriente detallada abajo. Tu donación seguirá estando 100% protegida y podrás generar tu certificado PDF de igual manera.
+                                    </p>
                                   </div>
                                 </div>
 
                                 <div className="relative flex py-1 items-center">
                                   <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-                                  <span className="flex-shrink mx-3 text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">O transferencia directa</span>
+                                  <span className="flex-shrink mx-3 text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Detalles de Transferencia Bancaria</span>
                                   <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
                                 </div>
 
@@ -1210,7 +1177,7 @@ export default function App() {
                                       onChange={(e) => setPersonalData({...personalData, qrConfirmationChecked: e.target.checked})}
                                       className="mt-0.5 rounded border-slate-300 text-[#003893] focus:ring-[#003893] w-4 h-4"
                                     />
-                                    <span>Ya he completado mi pago seguro en ePayco o realizado la transferencia bancaria por el monto de <strong>${activeAmount} USD</strong>.</span>
+                                    <span>Ya he realizado la transferencia bancaria por el monto equivalente a <strong>${activeAmount} USD</strong> a la cuenta corriente especificada.</span>
                                   </label>
                                 </div>
                               </div>
